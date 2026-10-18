@@ -1,0 +1,109 @@
+.
+├── core
+│   ├── Logic
+│   │   ├── SystemActions.qml
+│   │   ├── ThemeColors.js
+│   │   ├── ThemeEngine.qml
+│   │   ├── WallustColors.js
+│   │   └── WallustHotReload.qml
+│   ├── Managers
+│   │   ├── AudioManager.qml
+│   │   ├── BrightnessManager.qml
+│   │   ├── IpcManager.qml
+│   │   ├── PowerManager.qml
+│   │   ├── qmldir
+│   │   └── WorkspaceManager.qml
+│   └── Shortcuts
+│       ├── ClipboardShortcuts.qml
+│       ├── LauncherShortcuts.qml
+│       ├── ShortcutManager.qml
+│       └── WallpaperShortcuts.qml
+├── lockscreen
+│   ├── components
+│   │   ├── LockContext.qml
+│   │   ├── LockSurface.qml
+│   │   └── pam
+│   │       └── password.conf
+│   ├── core
+│   │   ├── ThemeEngine.qml
+│   │   └── WallustHotReload.qml
+│   ├── lockscreen_preview.qml
+│   ├── lockscreen.qml
+│   └── lock.sh
+├── scripts
+│   ├── ApplyWallpaper.sh
+│   ├── ListWallpapers.sh
+│   ├── recorder.sh
+│   ├── reload.sh
+│   └── WallustAwww.sh
+├── sddm
+│   ├── Main.qml
+│   ├── metadata.desktop
+│   └── theme.conf
+├── shell.qml
+├── temp.txt
+└── ui
+    ├── global
+    │   ├── appLauncher
+    │   │   ├── AppDelegate.qml
+    │   │   ├── AppEngine.js
+    │   │   └── AppLauncher.qml
+    │   ├── BrightnessBar.qml
+    │   ├── Clipboard.qml
+    │   ├── Clock.qml
+    │   ├── Notifications.qml
+    │   ├── PillState.qml
+    │   ├── PowerMenu.qml
+    │   ├── VolumeBar.qml
+    │   ├── WallpaperPicker.qml
+    │   └── Workspace.qml
+    ├── HoverDashboard
+    │   ├── components
+    │   │   ├── BatteryWidget.qml
+    │   │   ├── CalendarWidget.qml
+    │   │   ├── CpuWidget.qml
+    │   │   ├── HostWidget.qml
+    │   │   ├── PingWidget.qml
+    │   │   ├── RamWidget.qml
+    │   │   ├── UserWidget.qml
+    │   │   ├── WeatherWidget.qml
+    │   │   └── WifiWidget.qml
+    │   └── Slides
+    │       ├── ClockSlide
+    │       │   └── ClockSlide.qml
+    │       ├── DashboardNavBar.qml
+    │       ├── MediaSlide
+    │       │   └── MediaSlide.qml
+    │       ├── NotificationSlide
+    │       │   └── NotificationSlide.qml
+    │       └── SettingsSlide
+    │           ├── Aeroplane
+    │           │   └── AeroplaneToggle.qml
+    │           ├── Awake
+    │           │   └── AwakeToggle.qml
+    │           ├── BlueTooth
+    │           │   ├── BluetoothMenu.qml
+    │           │   └── BlueToothToggle.qml
+    │           ├── Brightness
+    │           │   └── Brightnessbar.qml
+    │           ├── Microphone
+    │           │   └── MicrophoneToggle.qml
+    │           ├── Network
+    │           │   ├── NetworkToggle.qml
+    │           │   └── WifiMenu.qml
+    │           ├── NightLight
+    │           │   └── NightLightToggle.qml
+    │           ├── PowerProfile
+    │           │   └── PowerProfileToggle.qml
+    │           ├── ScreenRecord
+    │           │   └── ScreenRecordToggle.qml
+    │           ├── Screenshot
+    │           │   └── ScreenshotToggle.qml
+    │           ├── SettingsSlide.qml
+    │           └── Volume
+    │               └── Volumebar.qml
+    └── panels
+        ├── HoverDashboard.qml
+        └── MainPanel.qml
+
+33 directories, 74 files
