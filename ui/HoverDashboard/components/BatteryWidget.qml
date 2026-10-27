@@ -13,7 +13,7 @@ Row {
 
     readonly property var battery: UPower.displayDevice
 
-    readonly property bool available: battery !== null
+    readonly property bool available: battery != null && battery.isPresent
 
     readonly property int percentage: available
     ? Math.max(0, Math.min(100, Math.round(battery.percentage * 100)))
@@ -24,7 +24,7 @@ Row {
 
     readonly property color iconColor: {
         if (!available)
-        return mutedAccent
+        return accent
 
         if (charging)
         return accent
