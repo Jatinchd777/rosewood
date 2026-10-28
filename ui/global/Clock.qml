@@ -10,6 +10,9 @@ Row {
 
     property color accent: theme.primary
     property color textColor: theme.on_background
+    property var settings
+
+    readonly property string timeFormat: root.settings && root.settings.clockFormat === "24h" ? "HH:mm" : "hh:mm AP"
 
     property string statusIcon: {
         const hour = clock.date.getHours()
@@ -34,7 +37,7 @@ Row {
     }
 
     Text {
-        text: Qt.formatDateTime(clock.date, "hh:mm AP")
+        text: Qt.formatDateTime(clock.date, root.timeFormat)
         color: root.textColor
 
         y: 3

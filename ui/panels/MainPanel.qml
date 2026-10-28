@@ -10,6 +10,7 @@ PanelWindow {
     id: root
 
     property var stateEngine
+    property var settings
     property bool isFullyLoaded: false
 
     // The hover dashboard reports its animated size back to the window so the
@@ -27,17 +28,18 @@ PanelWindow {
     NotificationManager {
         id: notificationMgr
         stateEngine: root.stateEngine
+        settings: root.settings
     }
 
     mask: Region { item: maskTarget }
 
     implicitWidth: 1010
     implicitHeight: 600
-    exclusiveZone: 26
+    exclusiveZone: root.settings ? root.settings.exclusiveZone : 26
     color: "transparent"
 
     anchors { top: true }
-    margins { top: 5 }
+    margins { top: root.settings ? root.settings.marginTop : 5 }
 
     Component.onCompleted: {
         isFullyLoaded = true
@@ -113,7 +115,7 @@ PanelWindow {
 
     Rectangle {
         id: pill
-        color: Qt.alpha(theme.background, 0.65)
+        color: Qt.alpha(theme.background, root.settings ? root.settings.backgroundOpacity : 0.65)
 
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
@@ -181,7 +183,7 @@ PanelWindow {
             anchors.fill: parent
             anchors.margins: 5
 
-            Clock { visible: pill.state === "clock" }
+            Clock { visible: pill.state === "clock"; settings: root.settings }
             Workspace { visible: pill.state === "workspace" }
             VolumeBar { visible: pill.state === "volume" }
             BrightnessBar { visible: pill.state === "brightness" }
@@ -195,6 +197,8 @@ PanelWindow {
                     HoverDashboard {
                         isOpen: pill.state === "hover"
                         notificationManager: notificationMgr
+                        settings: root.settings
+                        defaultTab: root.settings ? root.settings.defaultDashboardTab : 0
                         onLayoutChanged: (w, h) => {
                             root.hoverWidth = w
                             root.hoverHeight = h
@@ -219,6 +223,7 @@ PanelWindow {
                     WallpaperPicker {
                         stateEngine: root.stateEngine
                         themeEngine: theme
+                        settings: root.settings
                     }
                 }
             }
@@ -230,6 +235,7 @@ PanelWindow {
                 sourceComponent: Component {
                     AppLauncher {
                         stateEngine: root.stateEngine
+                        columns: root.settings ? root.settings.launcherColumns : 2
                         onRequestClose: root.stateEngine.showClock()
                     }
                 }

@@ -15,6 +15,10 @@ Item {
     signal requestStateChange(string targetState)
 
     property color accent: theme.primary
+    property var settings
+
+    readonly property bool use24h: settings ? settings.clockFormat === "24h" : false
+    readonly property bool showSeconds: settings ? settings.showSeconds : true
 
     opacity: visible ? 1 : 0
 
@@ -27,12 +31,13 @@ Item {
 
     SystemClock {
         id: clock
-        precision: clockSlide.isActive ? SystemClock.Seconds : SystemClock.Minutes
+        precision: clockSlide.isActive && clockSlide.showSeconds ? SystemClock.Seconds : SystemClock.Minutes
     }
 
     WeatherWidget {
         accent: clockSlide.accent
-        location: "Chandigarh"
+        location: clockSlide.settings ? clockSlide.settings.weatherLocation : "Chandigarh"
+        unit: clockSlide.settings ? clockSlide.settings.weatherUnit : "metric"
         active: clockSlide.isActive
 
         anchors.right: parent.right
@@ -91,7 +96,9 @@ Item {
         anchors.bottomMargin: 110
 
         Text {
-            text: Qt.formatDateTime(clock.date, "hh:mm:ss AP")
+            text: Qt.formatDateTime(clock.date, clockSlide.use24h
+                ? (clockSlide.showSeconds ? "HH:mm:ss" : "HH:mm")
+                : (clockSlide.showSeconds ? "hh:mm:ss AP" : "hh:mm AP"))
 
             color: clockSlide.accent
             font.family: "JetBrains Mono"

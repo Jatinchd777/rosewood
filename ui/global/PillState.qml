@@ -7,6 +7,7 @@ Item {
 
     property string state: "clock"
     property bool panelHovered: false
+    property var settings
 
     readonly property var stateRegistry: {
         "clock":        { "modal": false },
@@ -123,7 +124,7 @@ Item {
 
     Timer {
         id: notificationTimer
-        interval: 3000
+        interval: root.settings ? root.settings.notificationTimeout : 3000
         onTriggered: {
             if (root.state !== "notifications") return
             if (root.isHoverOverrideActive()) notificationTimer.restart()

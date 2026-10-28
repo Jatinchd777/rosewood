@@ -30,14 +30,14 @@ _a warm, dark, pill-shaped desktop shell built on Quickshell & Hyprland._
 
 ---
 
-Everything in rosewood lives in a single floating **pill** at the top of the screen. It idles as a clock, morphs to show volume / brightness / workspaces when they change, turns into toasts for notifications, and expands — on hover — into a full **hover dashboard** with a clock, media player, quick settings and notification history. A matching **session lock** (PAM, wallpaper-woven) and a **2-column app launcher** with calculator and shell modes round it out, all tinted from your wallpaper through wallust.
+Everything in rosewood lives in a single floating **pill** at the top of the screen. It idles as a clock, morphs to show volume / brightness / workspaces when they change, turns into toasts for notifications, and expands — on hover — into a full **hover dashboard** with a clock, media player, quick settings and notification history. A matching **session lock** (PAM, wallpaper-woven), a **configurable app launcher** with calculator and shell modes, and a standalone **settings app** round it out, all tinted from your wallpaper through wallust.
 
 ## Features
 
 ### The pill
 - **One widget, many faces** — a state machine morphs a single pill between clock, volume, brightness, workspace, notifications, power, wallpaper, clipboard and launcher with animated width/height/radius transitions.
 - **Hover to expand** — parking the cursor on the pill opens the hover dashboard instead of switching states; modal views always take priority.
-- **Transient states** — volume/brightness/workspaces show themselves for 1s after a change, notification toasts for 3s, then fall back to the clock.
+- **Transient states** — volume/brightness/workspaces show themselves for 1s after a change, notification toasts for 3s by default, then fall back to the clock.
 
 ### Hover dashboard
 - **Clock tab** — big clock and date, weather from wttr.in, CPU and RAM load, ping to `1.1.1.1`, battery (UPower), Wi-Fi network, `user@host`, and clickable workspace dots. Double-click (or right-click) the clock for a full **month calendar** with today highlighted.
@@ -58,9 +58,16 @@ Everything in rosewood lives in a single floating **pill** at the top of the scr
 - Freezes the screen with `grim`, then fades a blurred, vignetted copy of your wallpaper over it.
 - Animated idle → auth flow: *"PRESS ANY KEY TO UNLOCK"*, dots while PAM checks, red *"Incorrect password"* on failure, and `lockscreen_preview.qml` for testing without locking yourself out.
 
+### Settings app
+- A separate Quickshell config (`settings/settings.qml`) with its own window, sidebar and wallust-tinted controls.
+- Uses the same translucent palette surface as the pill: the settings background opacity follows `bar.backgroundOpacity` live.
+- Edits `~/.config/quickshell/settings.json`; the running shell watches the file and applies changes **live** — no restart.
+- Covers clock format and seconds, weather location and units, default dashboard tab, bar margin/exclusive zone/opacity, launcher columns, wallpaper directory and transition duration, notification timeout and history, and the lock-screen monitor.
+- `settings/launch.sh` floats, sizes, centers and focuses the window on Hyprland, and reopens the existing window instead of starting a second instance.
+
 ### Theming
 - **Wallust** (Material You palette) regenerates the shell live: change wallpaper → palette rewrite → shell recolours itself in place via the hot-reload engine, no restart.
-- The wallpaper picker (grid + fuzzy search over `~/Pictures/wallpapers`) applies wallpapers through [awww](https://codeberg.org/LGFae/awww) with a random transition, reruns wallust, and pings kitty + cava to retheme.
+- The wallpaper picker (grid + fuzzy search over the configured wallpaper directory, `~/Pictures/wallpapers` by default) applies wallpapers through [awww](https://codeberg.org/LGFae/awww) with a random transition, reruns wallust, and pings kitty + cava to retheme.
 - Every widget reads semantic Material tokens (`primary`, `surface_container`, `error`, …), so all screens — bar, dashboard, launcher, lock — change clothes together.
 
 ## Showcase
@@ -86,6 +93,7 @@ Everything in rosewood lives in a single floating **pill** at the top of the scr
 | `wl-clipboard` (`wl-paste` / `wl-copy`) | Clipboard history |
 | `gpu-screen-recorder` | Screen recording toggle |
 | `grim` | Lock screen background capture |
+| `jq` | Reads the lock-screen monitor from `settings.json` |
 | `rfkill` | Aeroplane mode toggle |
 | `power-profiles-daemon` (`powerprofilesctl`) | Power profile toggle |
 | `systemd-inhibit` | Keep-awake toggle |
@@ -118,10 +126,10 @@ A few things you'll likely want to adjust first:
 
 | What | Where |
 | --- | --- |
-| Weather location (defaults to `Chandigarh`) | `ui/HoverDashboard/components/WeatherWidget.qml`, `.../Slides/ClockSlide/ClockSlide.qml` |
-| Wallpaper directory (`~/Pictures/wallpapers`) | `scripts/ListWallpapers.sh`, `ui/global/WallpaperPicker.qml` |
+| Weather location, units and clock format | `settings.json` (or the Settings app) |
+| Wallpaper directory and transition duration | `settings.json` (or the Settings app) |
+| Lock-screen monitor (`eDP-1` by default) | `settings.json` (or the Settings app) |
 | Screen recordings directory (`~/Videos`) | `.../SettingsSlide/ScreenRecord/ScreenRecordToggle.qml` |
-| Monitor name used for lock screenshot (`eDP-1`) | `lockscreen/lock.sh` |
 | `prime-run` prefix in the theming script (NVIDIA only) | `scripts/WallustAwww.sh` |
 | Palette output: wallust must write `core/Logic/WallustColors.js` | your `~/.config/wallust/wallust.toml` |
 
@@ -143,11 +151,35 @@ Lock your session with:
 ~/.config/quickshell/lockscreen/lock.sh
 ```
 
+Open the settings app with:
+
+```sh
+~/.config/quickshell/settings/launch.sh
+```
+
+The settings app is a separate Quickshell config (`settings/settings.qml`). It writes `~/.config/quickshell/settings.json`, which the shell watches and applies live. The file is created with defaults the first time the app opens.
+
+### Configuration file
+
+`settings.json` is the single source of truth for user preferences:
+
+| Section | Keys |
+| --- | --- |
+| `dashboard` | `clockFormat` (`12h` / `24h`), `showSeconds`, `weatherLocation`, `weatherUnit` (`metric` / `imperial`), `defaultDashboardTab` (`0` clock, `1` media, `2` controls, `3` notifications) |
+| `bar` | `marginTop`, `exclusiveZone` (pixels), `backgroundOpacity` (`0.2`–`1`) |
+| `launcher` | `columns` (`1`–`4`) |
+| `wallpaper` | `directory` (supports `~`), `transitionDuration` (seconds) |
+| `notifications` | `toastTimeout` (milliseconds), `keepExpired` |
+| `lock` | `monitor` (output name used by `grim`) |
+
+Values outside their supported range are clamped, and missing keys fall back to defaults, so the file can be edited by hand safely.
+
 ## Usage
 
 | Action | How |
 | --- | --- |
 | Open the dashboard | Hover the pill |
+| Open settings | `settings/launch.sh` (or the bind below) |
 | Switch dashboard tabs | Click the icons at the top (clock · media · settings · notifications) |
 | Calendar | Double-click or right-click the clock |
 | Expanded Wi-Fi / Bluetooth menus | Right-click or double-click those toggles |
@@ -156,12 +188,17 @@ Lock your session with:
 | Copy a clipboard entry | Click it (or select + Enter) |
 | Delete a clipboard entry | Click the ✕ on the card |
 
-rosewood exposes two IPC channels, handy for keybinds:
+The main shell exposes two IPC channels, handy for keybinds:
 
 ```sh
 qs ipc call pill setState appLauncher   # any state: clock volume brightness workspace
                                         # notifications powermenu wallpaper clipboard appLauncher
 qs ipc call theme reload                # re-read the palette after regenerating it
+
+# Settings app (separate config)
+qs ipc -p ~/.config/quickshell/settings/settings.qml call settings open
+qs ipc -p ~/.config/quickshell/settings/settings.qml call settings page 4   # sidebar page 0–5
+qs ipc -p ~/.config/quickshell/settings/settings.qml call settings hide
 ```
 
 Example Hyprland binds:
@@ -171,7 +208,16 @@ bind = SUPER, R,      exec, qs ipc call pill setState appLauncher
 bind = SUPER, V,      exec, qs ipc call pill setState clipboard
 bind = SUPER, W,      exec, qs ipc call pill setState wallpaper
 bind = SUPER SHIFT, P, exec, qs ipc call pill setState powermenu
+bind = SUPER, comma,  exec, ~/.config/quickshell/settings/launch.sh
 bind = SUPER, L,      exec, ~/.config/quickshell/lockscreen/lock.sh
+```
+
+`settings/launch.sh` makes the window float at 1020×720, centers it and focuses it through Hyprland IPC, so no window rule is required. If you launch `settings/settings.qml` directly with `qs -p`, add a fallback rule:
+
+```
+windowrulev2 = float, class:^(org.quickshell)$
+windowrulev2 = size 1020 720, class:^(org.quickshell)$
+windowrulev2 = center, class:^(org.quickshell)$
 ```
 
 ## Keybinds
@@ -218,10 +264,14 @@ wallpaper ──▶ scripts/ApplyWallpaper.sh ──▶ awww (set wallpaper)
 ```
 rosewood/
 ├── shell.qml                    # entry point — pill state, audio, main panel
+├── settings.json                # shared live config (created on first run)
 ├── core/
-│   ├── Logic/                   # theme engine, palette hot-reload, system actions
+│   ├── Logic/                   # theme engine, palette hot-reload, settings store
 │   ├── Managers/                # audio · brightness · workspace · power · IPC
 │   └── Shortcuts/               # per-view keyboard handling
+├── settings/                    # settings app (own entry point, pages, controls, launch.sh)
+│   ├── settings.qml             # settings app entry point (run separately)
+│   └── core -> ../core          # shared logic, kept inside the app's config root
 ├── ui/
 │   ├── panels/                  # MainPanel (the pill) · HoverDashboard
 │   ├── global/                  # clock · bars · power menu · notifications
@@ -239,14 +289,15 @@ rosewood/
 | Colours are stale after a wallpaper change | `qs ipc call theme reload`; if that fails, wallust didn't write `core/Logic/WallustColors.js`. |
 | Icons render as boxes | Install **JetBrainsMono Nerd Font**. |
 | Volume slider works, brightness doesn't | `brightnessctl` needs `video` group membership (or a udev rule). |
-| Lock screen is plain black | `grim` missing, or the monitor name in `lockscreen/lock.sh` isn't yours — check `hyprctl monitors`. |
+| Lock screen is plain black | `grim` missing, or the monitor in `settings.json` (`lock.monitor`) isn't yours — check `hyprctl monitors`. |
+| Settings window is tiled | Launch it with `settings/launch.sh` (it floats and centers the window), or add the fallback rules shown under [Usage](#usage). |
 | No notification toasts | Another daemon (dunst, mako, …) owns the notification bus — stop it. |
 | Weather stuck at `--°C` | `curl` can't reach wttr.in, or the location string needs changing. |
 | Record toggle does nothing | `gpu-screen-recorder` isn't installed. |
 
 ## Roadmap
 
-- [ ] Move hardcoded paths, weather location and directories into a single config file
+- [x] Move hardcoded paths, weather location and directories into a single config file
 - [ ] Multi-monitor bar (the lock screen already spawns one surface per screen)
 - [ ] Replace the fixed 1–10 workspace dots with a dynamic count
 - [ ] Ship example wallust config in-repo for one-command setup

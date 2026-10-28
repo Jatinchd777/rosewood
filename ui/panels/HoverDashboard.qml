@@ -13,8 +13,10 @@ Item {
     clip: true
 
     property int activeTab: 0
+    property int defaultTab: 0
     property string subState: "default"
     property var notificationManager
+    property var settings
     // Set by MainPanel while the hover pill is actually showing. `visible` on
     // a Loader's child stays true when the loader is hidden, so it cannot be
     // used to gate timers.
@@ -42,6 +44,8 @@ Item {
     onTargetWidthChanged: layoutChanged(targetWidth, targetHeight)
     onTargetHeightChanged: layoutChanged(targetWidth, targetHeight)
 
+    Component.onCompleted: activeTab = defaultTab
+
     DashboardNavBar {
         activeTab: dashboardRoot.activeTab
         onTabChanged: (tab) => {
@@ -55,6 +59,7 @@ Item {
         isOpen: dashboardRoot.isOpen
         anchors.fill: parent
         currentSubState: dashboardRoot.subState
+        settings: dashboardRoot.settings
 
         onRequestStateChange: (targetState) => {
             dashboardRoot.subState = targetState

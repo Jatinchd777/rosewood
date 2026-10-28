@@ -1,2 +1,9 @@
 #!/bin/bash
-ls "${1:-$HOME/Pictures/wallpapers}"
+
+dir="${1:-$HOME/Pictures/wallpapers}"
+
+if [ ! -d "$dir" ]; then
+    exit 0
+fi
+
+ls "$dir"

@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "dashboard": {
+    "clockFormat": "12h",
+    "showSeconds": true,
+    "weatherLocation": "Chandigarh",
+    "weatherUnit": "imperial",
+    "defaultDashboardTab": 0
+  },
+  "bar": {
+    "marginTop": 8,
+    "exclusiveZone": 32,
+    "backgroundOpacity": 0.75
+  },
+  "launcher": {
+    "columns": 2
+  },
+  "wallpaper": {
+    "directory": "~/Pictures/wallpapers",
+    "transitionDuration": 1.5
+  },
+  "notifications": {
+    "toastTimeout": 3000,
+    "keepExpired": true
+  },
+  "lock": {
+    "monitor": "eDP-1"
+  }
+}

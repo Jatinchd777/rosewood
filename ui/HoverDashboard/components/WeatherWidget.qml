@@ -7,6 +7,7 @@ Item {
 
     property color accent: theme.on_background
     property string location: "Chandigarh"
+    property string unit: "metric"
     property bool active: true
 
     property string weatherIcon: "󰖐"
@@ -31,7 +32,7 @@ Item {
         command: [
             "curl",
             "-s",
-            "wttr.in/" + root.location + "?format=%C|%t"
+            "wttr.in/" + encodeURIComponent(root.location) + "?format=%C|%t&" + (root.unit === "imperial" ? "u" : "m")
         ]
 
         stdout: StdioCollector {
@@ -92,6 +93,16 @@ Item {
 
     onActiveChanged: {
         if (root.active && Date.now() - root.lastFetch > 1800000)
+            root.refresh()
+    }
+
+    onLocationChanged: {
+        if (root.active)
+            root.refresh()
+    }
+
+    onUnitChanged: {
+        if (root.active)
             root.refresh()
     }
 

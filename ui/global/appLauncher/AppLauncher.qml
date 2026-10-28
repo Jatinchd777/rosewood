@@ -12,6 +12,7 @@ Item {
     implicitHeight: 450
 
     property int absoluteGridWidth: width - 32
+    property int columns: 2
     property var stateEngine
     signal requestClose()
 
@@ -236,7 +237,7 @@ Item {
             boundsBehavior: Flickable.StopAtBounds
             visible: !launcherRoot.isCalcMode && !launcherRoot.isCmdMode
 
-            cellWidth: Math.floor(launcherRoot.absoluteGridWidth / 2)
+            cellWidth: Math.floor(launcherRoot.absoluteGridWidth / Math.max(1, launcherRoot.columns))
             cellHeight: 52
             keyNavigationWraps: false
             flow: GridView.LeftToRight

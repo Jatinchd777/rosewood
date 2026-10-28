@@ -5,7 +5,7 @@ import Quickshell.Widgets
 
 Item {
     id: delegateRoot
-    width: Math.floor(launcherRoot.absoluteGridWidth / 2)
+    width: Math.floor(launcherRoot.absoluteGridWidth / Math.max(1, launcherRoot.columns))
     height: 52
 
     required property var modelData

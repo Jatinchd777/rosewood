@@ -9,9 +9,11 @@ Item {
 
     property var stateEngine
     property var themeEngine
+    property var settings
 
     readonly property string home: Quickshell.env("HOME") || ""
-    readonly property string wallpaperDir: home + "/Pictures/wallpapers"
+    readonly property string wallpaperDir: settings ? settings.wallpaperDirectoryResolved : home + "/Pictures/wallpapers"
+    readonly property real transitionDuration: settings ? settings.wallpaperTransition : 0.75
     readonly property string listScript: home + "/.config/quickshell/scripts/ListWallpapers.sh"
     readonly property string applyScript: home + "/.config/quickshell/scripts/ApplyWallpaper.sh"
 
@@ -21,14 +23,15 @@ Item {
 
     Process {
         id: fetchWallpapers
-        command: ["bash", root.listScript]
+        command: ["bash", root.listScript, root.wallpaperDir]
 
         stdout: StdioCollector {
             id: wallpaperCollector
-            onTextChanged: {
-                root.allFiles = text.trim().split("\n").filter(f => f.length > 0)
-                root.updateModel(root.allFiles)
-            }
+        }
+
+        onExited: {
+            root.allFiles = wallpaperCollector.text.trim().split("\n").filter(f => f.length > 0)
+            root.updateModel(root.allFiles)
         }
     }
 
@@ -60,7 +63,7 @@ Item {
             return
 
         const fullPath = root.wallpaperDir + "/" + fileName
-        applyProc.command = ["bash", root.applyScript, fullPath]
+        applyProc.command = ["bash", root.applyScript, fullPath, String(root.transitionDuration)]
         applyProc.running = true
 
         if (root.themeEngine) {
@@ -75,6 +78,7 @@ Item {
     }
 
     Component.onCompleted: fetchWallpapers.running = true
+    onWallpaperDirChanged: fetchWallpapers.running = true
 
     ListModel { id: wallpaperModel }
 

@@ -10,6 +10,7 @@ Item {
     visible: false
 
     property var stateEngine
+    property var settings
 
     property var latest: null
     property string latestSummary: ""
@@ -58,8 +59,10 @@ Item {
             root.latest = null
 
         // Expiration should only hide the toast. Keep the notification in the
-        // dashboard history until the user dismisses it or clears the list.
-        if (reason === Notifs.NotificationCloseReason.Expired) {
+        // dashboard history until the user dismisses it, unless the user turns
+        // that behavior off in settings.
+        if (reason === Notifs.NotificationCloseReason.Expired
+                && (!root.settings || root.settings.keepExpiredNotifications)) {
             for (let i = 0; i < historyModel.count; i++) {
                 if (historyModel.get(i).notifObject === notification) {
                     historyModel.setProperty(i, "notifObject", null)
