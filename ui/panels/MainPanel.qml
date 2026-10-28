@@ -230,6 +230,7 @@ PanelWindow {
                 sourceComponent: Component {
                     AppLauncher {
                         stateEngine: root.stateEngine
+                        onRequestClose: root.stateEngine.showClock()
                     }
                 }
 

@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
@@ -8,6 +7,8 @@ Item {
     id: delegateRoot
     width: Math.floor(launcherRoot.absoluteGridWidth / 2)
     height: 52
+
+    required property var modelData
 
     Rectangle {
         anchors.fill: parent
@@ -27,13 +28,16 @@ Item {
                 Layout.preferredWidth: 32
                 Layout.preferredHeight: 32
 
-                source: model.icon ? Quickshell.iconPath(model.icon, "application-x-executable") : Quickshell.iconPath("application-x-executable")
+                source: Quickshell.iconPath(
+                    delegateRoot.modelData.icon ? delegateRoot.modelData.icon : "application-x-executable",
+                    "application-x-executable"
+                )
 
                 asynchronous: true
             }
 
             Text {
-                text: model.name
+                text: delegateRoot.modelData.name
                 color: delegateRoot.GridView.isCurrentItem ? theme.on_primary : theme.on_surface
                 font.family: "JetBrains Mono"
                 font.pixelSize: 13
