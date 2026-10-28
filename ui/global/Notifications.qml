@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Services.Notifications as Notifs
 
 Item {
     id: glanceRoot
@@ -9,34 +8,15 @@ Item {
     implicitHeight: mainLayout.implicitHeight + 24
 
     property var stateEngine
+    property var manager
 
-    property string activeSummary: ""
-    property string activeBody: ""
-    property string activeAppName: ""
-    property int activeUrgency: 1
-
-    property var activeNotification: null
+    readonly property string activeSummary: manager ? manager.latestSummary : ""
+    readonly property string activeBody: manager ? manager.latestBody : ""
+    readonly property string activeAppName: manager ? manager.latestAppName : ""
+    readonly property int activeUrgency: manager ? manager.latestUrgency : 1
+    readonly property var activeNotification: manager ? manager.latest : null
 
     property color accent: theme.primary
-
-    Notifs.NotificationServer {
-        id: transientServer
-        bodySupported: true
-        actionsSupported: true
-
-        onNotification: (notification) => {
-
-            glanceRoot.activeNotification = notification
-            glanceRoot.activeSummary = notification.summary || "Notification"
-            glanceRoot.activeBody = notification.body || ""
-            glanceRoot.activeAppName = notification.appName || "System"
-            glanceRoot.activeUrgency = notification.urgency
-
-            if (glanceRoot.stateEngine) {
-                glanceRoot.stateEngine.showNotifications()
-            }
-        }
-    }
 
     MouseArea {
         anchors.fill: parent
@@ -57,6 +37,9 @@ Item {
         }
 
         onClicked: {
+            if (glanceRoot.manager) {
+                glanceRoot.manager.dismissLatest()
+            }
             if (glanceRoot.stateEngine) {
                 glanceRoot.stateEngine.showClock()
             }

@@ -14,6 +14,8 @@ Item {
 
     anchors.fill: parent
 
+    property var stateEngine
+
     ListModel {
         id: clipboardModel
     }
@@ -24,7 +26,10 @@ Item {
         clipboardFetcher.running = true;
     }
 
-    ClipboardShortcuts {}
+    ClipboardShortcuts {
+        active: root.visible
+        stateEngine: root.stateEngine
+    }
 
     function appendClipboard(newText, isImg) {
         if (newText === "") return;
@@ -46,16 +51,6 @@ Item {
     }
 
     property string pendingText: ""
-
-    Process {
-        id: clipboardInitializer
-        command: ["wl-paste"]
-        stdout: SplitParser {
-            onRead: (data) => {
-                handleIncomingLine(data);
-            }
-        }
-    }
 
     Timer {
         id: clipboardDebounceTimer
@@ -241,7 +236,8 @@ Item {
                         onClicked: {
                             clipboardListView.currentIndex = index;
                             copySelectedToSystem(index);
-                            setState.showClock();
+                            if (root.stateEngine)
+                                root.stateEngine.showClock();
                         }
                     }
 
@@ -268,6 +264,7 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.left: parent.left
                                 height: 60
+                                sourceSize.height: 60
                                 fillMode: Image.PreserveAspectFit
                                 horizontalAlignment: Image.AlignLeft
                                 asynchronous: true

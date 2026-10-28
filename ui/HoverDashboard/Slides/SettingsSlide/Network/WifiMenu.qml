@@ -289,7 +289,7 @@ Item {
                                 }
 
                                 Text {
-                                    visible: modelData.secure && !modelData.connected
+                                    visible: !!(modelData.secure && !modelData.connected)
                                     text: "󰌾"
                                     font.family: "JetBrains Mono Nerd Font"
                                     color: theme.on_surface_variant

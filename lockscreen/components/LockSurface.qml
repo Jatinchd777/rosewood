@@ -29,20 +29,21 @@ Rectangle {
         onTriggered: root.animateIn = true
     }
 
-    Component.onCompleted: {
-        userReader.running = true
-        animInitTimer.start()
-    }
+    Component.onCompleted: animInitTimer.start()
 
     // Theme / Colors
-    WallustHotReload { id: wallustColors }
     ThemeEngine { id: theme }
 
     readonly property color foreColor: theme.on_surface
     readonly property color failColor: theme.error
 
-    property var clock: new Date()
-    property string userName: ""
+    SystemClock {
+        id: systemClock
+        precision: SystemClock.Minutes
+    }
+
+    readonly property var clock: systemClock.date
+    readonly property string userName: Quickshell.env("USER") || ""
     property string songText: ""
 
     // Auth visibility state
@@ -51,24 +52,6 @@ Rectangle {
     // ----- Clock Logic -----
     readonly property string hours: String(root.clock.getHours()).padStart(2, "0")
     readonly property string minutes: String(root.clock.getMinutes()).padStart(2, "0")
-
-    Timer {
-        interval: 1000
-        running: true
-        repeat: true
-        onTriggered: root.clock = new Date()
-    }
-
-    Process {
-        id: userReader
-        command: ["whoami"]
-
-        stdout: StdioCollector {
-            onTextChanged: {
-                if (text.length > 0) root.userName = text.trim()
-            }
-        }
-    }
 
     // ---------- BACKGROUND LAYER 1: Crisp Image ----------
     Item {

@@ -8,6 +8,8 @@ Item {
     anchors.fill: parent
     z: -1
 
+    property bool isOpen: false
+
     Behavior on opacity {
         NumberAnimation {
             duration: 250
@@ -40,8 +42,8 @@ Item {
     }
 
     Timer {
-        interval: 100
-        running: playerList.length > 0
+        interval: 250
+        running: mediaSlide.isOpen && mediaSlide.visible && playerList.length > 0
         repeat: true
         onTriggered: {
             let p = playerList.length > 0 ? playerList[playerIndex % playerList.length] : null;
@@ -130,6 +132,8 @@ Item {
                     anchors.centerIn: parent
                     anchors.horizontalCenterOffset: -10
                     source: playerList.length > 0 ? playerList[playerIndex % playerList.length].trackArtUrl : ""
+                    sourceSize.width: 300
+                    sourceSize.height: 260
                     fillMode: Image.PreserveAspectFit
                     visible: false
                     asynchronous: true
@@ -168,8 +172,11 @@ Item {
                         id: coverArt
                         anchors.fill: parent
                         source: playerList.length > 0 ? playerList[playerIndex % playerList.length].trackArtUrl : ""
+                        sourceSize.width: 170
+                        sourceSize.height: 170
                         fillMode: Image.PreserveAspectCrop
                         smooth: true
+                        asynchronous: true
                     }
 
                     Text {
@@ -220,7 +227,7 @@ Item {
 
                         SequentialAnimation on x {
                             id: marqueeAnim
-                            running: titleText.text.length >= 25 && playerList.length > 0 && playerList[playerIndex % playerList.length].isPlaying
+                            running: mediaSlide.isOpen && mediaSlide.visible && titleText.text.length >= 25 && playerList.length > 0 && playerList[playerIndex % playerList.length].isPlaying
                             loops: Animation.Infinite
                             onRunningChanged: {
                                 if (!running) {

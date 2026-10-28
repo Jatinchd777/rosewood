@@ -10,6 +10,8 @@ Item {
     anchors.fill: parent
 
     property string currentSubState: "default"
+    property bool isOpen: false
+    readonly property bool isActive: isOpen && visible
     signal requestStateChange(string targetState)
 
     property color accent: theme.primary
@@ -25,12 +27,13 @@ Item {
 
     SystemClock {
         id: clock
-        precision: SystemClock.Seconds
+        precision: clockSlide.isActive ? SystemClock.Seconds : SystemClock.Minutes
     }
 
     WeatherWidget {
         accent: clockSlide.accent
         location: "Chandigarh"
+        active: clockSlide.isActive
 
         anchors.right: parent.right
         anchors.rightMargin: 50
@@ -39,6 +42,7 @@ Item {
 
     CpuWidget {
         accent: clockSlide.accent
+        active: clockSlide.isActive
 
         anchors.left: parent.left
         anchors.leftMargin: 55
@@ -57,6 +61,7 @@ Item {
 
     RamWidget {
         accent: clockSlide.accent
+        active: clockSlide.isActive
 
         anchors.right: layoutAnchor.left
         anchors.rightMargin: 157
@@ -67,6 +72,7 @@ Item {
 
     PingWidget {
         accent: clockSlide.accent
+        active: clockSlide.isActive
 
         anchors.left: layoutAnchor.right
         anchors.leftMargin: 170

@@ -16,8 +16,8 @@ Item {
 
     property int currentIndex: 0
 
-    onOpacityChanged: {
-        if (opacity === 1.0) {
+    onVisibleChanged: {
+        if (visible) {
             root.forceActiveFocus()
             root.currentIndex = 0
         }

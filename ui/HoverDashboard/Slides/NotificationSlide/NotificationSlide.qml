@@ -2,42 +2,24 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
-import Quickshell.Services.Notifications as Notifs
 
 Item {
     id: root
     implicitWidth: 350
     implicitHeight: 450
 
-    ListModel {
-        id: localNotifModel
-    }
+    property var manager
 
     property color accent: theme.primary
 
-    Notifs.NotificationServer {
-        id: notifServer
-        bodySupported: true
+    function clearAll() {
+        if (root.manager)
+            root.manager.clearAll()
+    }
 
-        onNotification: (notification) => {
-            localNotifModel.insert(0, {
-                    "notifSummary": notification.summary || "",
-                    "notifBody": notification.body || "",
-                    "notifAppName": notification.appName || "",
-                    "notifUrgency": notification.urgency,
-                    "notifObject": notification,
-                    "isExpanded": true
-            });
-
-            notification.closed.connect(() => {
-                    for (var i = 0; i < localNotifModel.count; i++) {
-                        if (localNotifModel.get(i).notifObject === notification) {
-                            localNotifModel.remove(i);
-                            break;
-                        }
-                    }
-            });
-        }
+    function dismissAt(index) {
+        if (root.manager)
+            root.manager.dismissAt(index)
     }
 
     ColumnLayout {
@@ -53,19 +35,13 @@ Item {
                 text: "󰎟 Clear All"
                 font.family: "JetBrains Mono Nerd Font"
                 font.pixelSize: 12
-                color: localNotifModel.count > 0 ? theme.on_surface : theme.on_surface_variant
+                color: root.manager && root.manager.count > 0 ? theme.on_surface : theme.on_surface_variant
                 MouseArea {
                     cursorShape: Qt.PointingHandCursor
                     id: mouseAreaClear
                     anchors.fill: parent
                     hoverEnabled: true
-                    onClicked: {
-                        for (var i = localNotifModel.count - 1; i >= 0; i--) {
-                            var item = localNotifModel.get(i);
-                            if (item && item.notifObject) item.notifObject.dismiss();
-                        }
-                        localNotifModel.clear();
-                    }
+                    onClicked: root.clearAll()
                 }
             }
         }
@@ -76,7 +52,7 @@ Item {
 
             ColumnLayout {
                 anchors.centerIn: parent
-                visible: localNotifModel.count === 0
+                visible: !root.manager || root.manager.count === 0
                 spacing: 8
 
                 Text {
@@ -98,10 +74,10 @@ Item {
             ListView {
                 id: notificationListView
                 anchors.fill: parent
-                model: localNotifModel
+                model: root.manager ? root.manager.history : null
                 spacing: 8
                 clip: true
-                visible: localNotifModel.count > 0
+                visible: !!(root.manager && root.manager.count > 0)
 
                 delegate: Rectangle {
                     id: notifCard
@@ -126,10 +102,9 @@ Item {
                             // Map local coordinate to check against the close button area
                             var closeBtnPos = itemMouseArea.mapFromItem(expandArea, mouse.x, mouse.y)
                             if (itemMouseArea.contains(closeBtnPos)) {
-                                if (model.notifObject) model.notifObject.dismiss();
-                                localNotifModel.remove(index);
-                            } else {
-                                localNotifModel.setProperty(index, "isExpanded", !model.isExpanded)
+                                root.dismissAt(index)
+                            } else if (root.manager) {
+                                root.manager.history.setProperty(index, "isExpanded", !model.isExpanded)
                             }
                         }
                     }

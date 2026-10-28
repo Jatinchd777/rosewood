@@ -15,6 +15,7 @@ Item {
     implicitHeight: 450
 
     property int absoluteGridWidth: width - 32
+    property var stateEngine
     signal requestClose()
     property var masterApps: []
 
@@ -28,7 +29,7 @@ Item {
     property bool isCmdMode: searchInput.text.startsWith(":")
     property string calcResult: ""
 
-    LauncherShortcuts { }
+    LauncherShortcuts { stateEngine: launcherRoot.stateEngine }
 
     property var rawAppsList: []
 
@@ -51,11 +52,12 @@ Item {
                 let appObj = AppEngine.parseAppLine(data);
                 if (appObj) {
                     rawAppsList.push(appObj);
-                    masterApps = rawAppsList;
                     appsModel.append(appObj);
                 }
             }
         }
+
+        onExited: masterApps = rawAppsList
     }
 
     Process {
@@ -97,15 +99,17 @@ Item {
             }
 
                 ListModel { id: appsModel }
-                Component.onCompleted: searchInput.forceActiveFocus()
+
+                function prepare() {
+                    searchInput.clear();
+                    restoreAllApps();
+                    searchInput.forceActiveFocus();
+                }
 
                 onVisibleChanged: {
-                if (visible) {
-                searchInput.clear();
-                restoreAllApps();
-                searchInput.forceActiveFocus();
-            }
-            }
+                    if (visible)
+                        prepare();
+                }
 
                 ColumnLayout {
                 anchors.fill: parent

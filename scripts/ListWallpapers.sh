@@ -1,2 +1,2 @@
 #!/bin/bash
-ls /home/lilarchie/Pictures/wallpapers
+ls "${1:-$HOME/Pictures/wallpapers}"

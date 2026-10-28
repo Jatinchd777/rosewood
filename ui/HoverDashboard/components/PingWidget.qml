@@ -8,9 +8,15 @@ Item {
     property color accent: theme.primary
     property int iconSize: 14
     property int textSize: 13
+    property bool active: true
 
     implicitWidth: pingDisplay.implicitWidth
     implicitHeight: pingDisplay.implicitHeight
+
+    function refresh() {
+        if (!fetchPing.running)
+            fetchPing.running = true
+    }
 
     Process {
         id: fetchPing
@@ -28,14 +34,19 @@ Item {
 
     Timer {
         interval: 5000
-        running: true
+        running: root.active
         repeat: true
-        triggeredOnStart: true
+        onTriggered: root.refresh()
+    }
 
-        onTriggered: {
-            fetchPing.running = false
-            fetchPing.running = true
-        }
+    onActiveChanged: {
+        if (root.active)
+            root.refresh()
+    }
+
+    Component.onCompleted: {
+        if (root.active)
+            root.refresh()
     }
 
     Row {

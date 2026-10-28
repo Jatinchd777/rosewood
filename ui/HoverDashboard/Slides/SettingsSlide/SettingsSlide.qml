@@ -18,6 +18,7 @@ Item {
     anchors.fill: parent
 
     property string currentSubState: "default"
+    property bool isOpen: false
 
     signal requestStateChange(string targetState)
 
@@ -60,7 +61,7 @@ Item {
                 PowerProfileToggle { }
                 MicrophoneToggle { }
                 ScreenshotToggle { }
-                ScreenRecordToggle { }
+                ScreenRecordToggle { isOpen: settingsRoot.isOpen && settingsRoot.visible }
             }
 
             Column {

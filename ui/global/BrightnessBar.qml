@@ -12,30 +12,9 @@ Row {
     height: parent ? parent.height : 30
     spacing: 10
 
-    property real brightness: 0.0
-    property bool bootGuard: false
-
-    property real _managerBrightness: brightnessManager.currentBrightness
-
-    on_ManagerBrightnessChanged: {
-        root.brightness = _managerBrightness
-    }
-
-    onBrightnessChanged: {
-        if (bootGuard) {
-            if (typeof stateEngine !== "undefined" && stateEngine) {
-                stateEngine.showBrightness()
-            }
-        }
-    }
-
-    Timer {
-        id: bootTimer
-        interval: 400
-        running: true
-        repeat: false
-        onTriggered: root.bootGuard = true
-    }
+    // BrightnessManager already shows the pill when the value changes, so
+    // this widget only reflects state.
+    property real brightness: brightnessManager.currentBrightness
 
     Text {
         id: icon

@@ -5,6 +5,8 @@ import Quickshell.Io
 Item {
     id: engine
 
+    WallustHotReload { id: wallustColors }
+
     property color background: wallustColors.background
     property color on_background: wallustColors.on_background
     property color surface: wallustColors.surface
@@ -32,43 +34,40 @@ Item {
     property color inverse_surface: wallustColors.inverse_surface
     property color inverse_on_surface: wallustColors.inverse_on_surface
     property color inverse_primary: wallustColors.inverse_primary
+    property color surface_container: wallustColors.surface_container
 
     property string currentWallpaper: ""
 
-    Component.onCompleted: {
-        loadWallpaperFromFile()
-    }
+    readonly property string wallpaperStatePath:
+        (Quickshell.env("HOME") || "") + "/.cache/wallpaper_state.txt"
 
-    Process {
-        id: reader
-        command: ["cat", "/home/lilarchie/.cache/wallpaper_state.txt"]
-
-        stdout: StdioCollector {
-            onTextChanged: {
-                if (text.length > 0) {
-                    engine.currentWallpaper = text.trim()
-                }
-            }
-        }
+    function reload() {
+        wallustColors.reload()
     }
 
     function loadWallpaperFromFile() {
-        reader.running = true
+        wallpaperFile.reload()
     }
 
     function setWallpaper(path) {
         currentWallpaper = path
-        saveWallpaper(path)
     }
 
     function saveWallpaper(path) {
-        let proc = Qt.createQmlObject('import Quickshell.Io; Process {}', engine)
+        currentWallpaper = path
+        wallpaperFile.setText(path)
+    }
 
-        proc.command = [
-        "bash", "-c",
-        "printf '%s' \"" + path + "\" > ~/.cache/wallpaper_state.txt"
-        ]
-
-        proc.running = true
+    FileView {
+        id: wallpaperFile
+        path: engine.wallpaperStatePath
+        printErrors: false
+        watchChanges: true
+        onFileChanged: wallpaperFile.reload()
+        onTextChanged: {
+            const path = wallpaperFile.text().trim()
+            if (path.length > 0)
+                engine.currentWallpaper = path
+        }
     }
 }

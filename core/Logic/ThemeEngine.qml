@@ -5,6 +5,10 @@ import Quickshell.Io
 Item {
     id: engine
 
+    // A single palette reader lives with the theme engine instead of being
+    // instantiated separately by every window.
+    WallustHotReload { id: wallustColors }
+
     property color background: wallustColors.background
     property color on_background: wallustColors.on_background
     property color surface: wallustColors.surface
@@ -36,25 +40,15 @@ Item {
 
     property string currentWallpaper: ""
 
-    Component.onCompleted: {
-        loadWallpaperFromFile()
-    }
+    readonly property string wallpaperStatePath:
+        (Quickshell.env("HOME") || "") + "/.cache/wallpaper_state.txt"
 
-    Process {
-        id: reader
-        command: ["cat", "/home/lilarchie/.cache/wallpaper_state.txt"]
-
-        stdout: StdioCollector {
-            onTextChanged: {
-                if (text.length > 0) {
-                    engine.currentWallpaper = text.trim()
-                }
-            }
-        }
+    function reload() {
+        wallustColors.reload()
     }
 
     function loadWallpaperFromFile() {
-        reader.running = true
+        wallpaperFile.reload()
     }
 
     function setWallpaper(path) {
@@ -62,13 +56,22 @@ Item {
     }
 
     function saveWallpaper(path) {
-        let proc = Qt.createQmlObject('import Quickshell.Io; Process {}', engine)
+        currentWallpaper = path
+        wallpaperFile.setText(path)
+    }
 
-        proc.command = [
-        "sh", "-c",
-        "printf '%s' \"" + path + "\" > ~/.cache/wallpaper_state.txt"
-        ]
-
-        proc.running = true
+    // No `cat` process: FileView watches the state file and updates the
+    // wallpaper path in place when it changes.
+    FileView {
+        id: wallpaperFile
+        path: engine.wallpaperStatePath
+        printErrors: false
+        watchChanges: true
+        onFileChanged: wallpaperFile.reload()
+        onTextChanged: {
+            const path = wallpaperFile.text().trim()
+            if (path.length > 0)
+                engine.currentWallpaper = path
+        }
     }
 }

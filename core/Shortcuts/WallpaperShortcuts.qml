@@ -1,39 +1,43 @@
 import QtQuick
-import "../../ui/global/PillState.qml"
 
 Item {
+    id: shortcutsRoot
+
+    property bool active: false
+    property var stateEngine
+
+    signal applyRequested(string fileName)
 
     Shortcut {
         sequence: "Escape"
-        enabled: root.visible
+        enabled: shortcutsRoot.active
         onActivated: {
-            stateEngine.showClock()
+            if (shortcutsRoot.stateEngine)
+                shortcutsRoot.stateEngine.showClock()
         }
     }
 
     Shortcut {
         sequence: "/"
-        enabled: root.visible
+        enabled: shortcutsRoot.active
         onActivated: searchInput.forceActiveFocus()
     }
 
     Shortcut {
-        sequence: "Return"
-        enabled: root.visible && searchInput.activeFocus === false
+        sequences: ["Return", "Enter"]
+        enabled: shortcutsRoot.active && searchInput.activeFocus === false
         onActivated: {
-            if (grid.currentItem) {
-                let modelData = wallpaperModel.get(grid.currentIndex)
-                let fullPath = "/home/lilarchie/Pictures/wallpapers/" + modelData.fileName
-                let applyProc = Qt.createQmlObject('import Quickshell.Io; Process {}', root)
-                applyProc.command = ["/home/lilarchie/.config/quickshell/scripts/ApplyWallpaper.sh", fullPath]
-                applyProc.running = true
-                themeEngine.refreshTheme()
-            }
+            if (!grid.currentItem)
+                return
+
+            const modelData = wallpaperModel.get(grid.currentIndex)
+            if (modelData)
+                shortcutsRoot.applyRequested(modelData.fileName)
         }
     }
 
-    Shortcut { sequences: ["Left", "h"]; enabled: root.visible; onActivated: grid.moveCurrentIndexLeft() }
-    Shortcut { sequences: ["Right", "l"]; enabled: root.visible; onActivated: grid.moveCurrentIndexRight() }
-    Shortcut { sequences: ["Up", "k"]; enabled: root.visible; onActivated: grid.moveCurrentIndexUp() }
-    Shortcut { sequences: ["Down", "j"]; enabled: root.visible; onActivated: grid.moveCurrentIndexDown() }
+    Shortcut { sequences: ["Left", "h"]; enabled: shortcutsRoot.active; onActivated: grid.moveCurrentIndexLeft() }
+    Shortcut { sequences: ["Right", "l"]; enabled: shortcutsRoot.active; onActivated: grid.moveCurrentIndexRight() }
+    Shortcut { sequences: ["Up", "k"]; enabled: shortcutsRoot.active; onActivated: grid.moveCurrentIndexUp() }
+    Shortcut { sequences: ["Down", "j"]; enabled: shortcutsRoot.active; onActivated: grid.moveCurrentIndexDown() }
 }

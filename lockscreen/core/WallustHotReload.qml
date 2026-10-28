@@ -32,25 +32,37 @@ Item {
     property color inverse_surface: "#1A1012"
     property color inverse_on_surface: "#DCD2CC"
     property color inverse_primary: "#CEBCB3"
+    property color surface_container: "#ffffff"
 
-    Component.onCompleted: reload()
+    readonly property string palettePath:
+        (Quickshell.env("HOME") || "") + "/.config/quickshell/core/palettes/WallustColors.js"
 
     function reload() {
-        reader.running = true
+        reader.reload()
     }
 
-    Process {
-        id: reader
-        command: ["cat", "/home/lilarchie/.config/quickshell/core/Logic/WallustColors.js"]
+    function applyPalette(source) {
+        if (!source)
+            return
 
-        stdout: SplitParser {
-            onRead: (line) => {
-                let match = line.match(/^var\s+(\w+)\s*=\s*"(#[0-9a-fA-F]+)"\s*$/)
-                if (match) {
-                    let name = match[1].replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase()
-                    if (name in root) root[name] = match[2]
-                }
-            }
+        const lines = source.split("\n")
+        for (let i = 0; i < lines.length; i++) {
+            const match = lines[i].match(/^\s*var\s+(\w+)\s*=\s*"(#[0-9a-fA-F]{6})"\s*;?\s*$/)
+            if (!match)
+                continue
+
+            const name = match[1].replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase()
+            if (name in root)
+                root[name] = match[2]
         }
+    }
+
+    FileView {
+        id: reader
+        path: root.palettePath
+        printErrors: false
+        watchChanges: true
+        onFileChanged: reader.reload()
+        onTextChanged: root.applyPalette(reader.text())
     }
 }

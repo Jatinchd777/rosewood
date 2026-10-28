@@ -10,17 +10,25 @@ Row {
     property color accent: theme.primary
     property color darkAccent: theme.secondary
 
+    // Build the id -> workspace map once per workspace-list change instead of
+    // running Array.find() inside ten separate dot bindings.
+    readonly property var workspaceMap: {
+        const map = {}
+        const workspaces = Hyprland.workspaces.values
+        for (let i = 0; i < workspaces.length; i++)
+            map[workspaces[i].id] = workspaces[i]
+        return map
+    }
+
+    readonly property int focusedId: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : -1
 
     Repeater {
         model: 10
         Rectangle {
             id: dot
 
-            property var wsInstance: Hyprland.workspaces.values.find(
-                w => w.id === (index + 1)
-            )
-            property bool isFocused: Hyprland.focusedWorkspace
-            && Hyprland.focusedWorkspace.id === (index + 1)
+            property var wsInstance: workspaceRow.workspaceMap[index + 1]
+            property bool isFocused: workspaceRow.focusedId === (index + 1)
             property bool isOccupied: wsInstance !== undefined
 
             width: isFocused ? 18 : (isOccupied ? 8 : 6)

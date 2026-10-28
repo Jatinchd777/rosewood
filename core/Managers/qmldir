@@ -3,6 +3,6 @@
 AudioManager 1.0 AudioManager.qml
 BrightnessManager 1.0 BrightnessManager.qml
 IpcManager 1.0 IpcManager.qml
+NotificationManager 1.0 NotificationManager.qml
 PowerManager 1.0 PowerManager.qml
 WorkspaceManager 1.0 WorkspaceManager.qml
-LockManager 1.0 LockManager.qml

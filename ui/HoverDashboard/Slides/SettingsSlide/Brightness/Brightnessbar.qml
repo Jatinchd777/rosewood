@@ -8,9 +8,13 @@ Item {
 
     property color accent: theme.primary
     property real brightnessValue: 0.5
+    property bool dragging: dragArea.pressed
 
-    property real _managerBrightness: brightnessManager.currentBrightness
-    on_ManagerBrightnessChanged: sliderRoot.brightnessValue = _managerBrightness
+    property real managerBrightness: brightnessManager.currentBrightness
+    onManagerBrightnessChanged: {
+        if (!sliderRoot.dragging)
+            sliderRoot.brightnessValue = sliderRoot.managerBrightness
+    }
 
     Rectangle {
         id: track
@@ -37,6 +41,7 @@ Item {
         }
 
         MouseArea {
+            id: dragArea
             anchors.fill: parent
             preventStealing: true
             cursorShape: Qt.PointingHandCursor

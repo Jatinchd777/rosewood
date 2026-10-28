@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import "../../core/Shortcuts/"
 
@@ -6,35 +7,75 @@ Item {
     id: root
     anchors.fill: parent
 
+    property var stateEngine
+    property var themeEngine
+
+    readonly property string home: Quickshell.env("HOME") || ""
+    readonly property string wallpaperDir: home + "/Pictures/wallpapers"
+    readonly property string listScript: home + "/.config/quickshell/scripts/ListWallpapers.sh"
+    readonly property string applyScript: home + "/.config/quickshell/scripts/ApplyWallpaper.sh"
+
     property var allFiles: []
+
+    readonly property bool pickerOpen: stateEngine ? stateEngine.state === "wallpaper" : false
 
     Process {
         id: fetchWallpapers
-        command: ["bash", "-c", "/home/lilarchie/.config/quickshell/scripts/ListWallpapers.sh"]
+        command: ["bash", root.listScript]
+
         stdout: StdioCollector {
             id: wallpaperCollector
             onTextChanged: {
-                allFiles = text.trim().split("\n").filter(f => f.length > 0)
-                updateModel(allFiles)
+                root.allFiles = text.trim().split("\n").filter(f => f.length > 0)
+                root.updateModel(root.allFiles)
             }
         }
     }
 
-    WallpaperShortcuts {}
+    // One reusable process; the old code created a new Process via
+    // Qt.createQmlObject() on every click and never destroyed it.
+    Process {
+        id: applyProc
+    }
+
+    WallpaperShortcuts {
+        active: root.pickerOpen
+        stateEngine: root.stateEngine
+        onApplyRequested: (fileName) => root.applyWallpaper(fileName)
+    }
 
     function updateModel(list) {
         wallpaperModel.clear()
-        for (let file of list) {
+        for (const file of list)
             wallpaperModel.append({ fileName: file })
-        }
     }
 
     function filterModel(query) {
-        let filtered = allFiles.filter(file => file.toLowerCase().includes(query))
+        const filtered = root.allFiles.filter(file => file.toLowerCase().includes(query))
         updateModel(filtered)
     }
 
+    function applyWallpaper(fileName) {
+        if (!fileName || applyProc.running)
+            return
+
+        const fullPath = root.wallpaperDir + "/" + fileName
+        applyProc.command = ["bash", root.applyScript, fullPath]
+        applyProc.running = true
+
+        if (root.themeEngine) {
+            root.themeEngine.saveWallpaper(fullPath)
+            root.themeEngine.setWallpaper(fullPath)
+        }
+
+        // Close immediately: the wallpaper transition has already started and
+        // wallust updates the palette in the background.
+        if (root.stateEngine)
+            root.stateEngine.showClock()
+    }
+
     Component.onCompleted: fetchWallpapers.running = true
+
     ListModel { id: wallpaperModel }
 
     Rectangle {
@@ -66,7 +107,7 @@ Item {
                 verticalAlignment: Text.AlignVCenter
                 visible: searchInput.text.length === 0 && !searchInput.activeFocus
             }
-            onTextChanged: filterModel(text.toLowerCase())
+            onTextChanged: root.filterModel(text.toLowerCase())
         }
     }
 
@@ -106,11 +147,11 @@ Item {
                 anchors.margins: 3
                 color: "transparent"
                 radius: 12
-                clip:true
+                clip: true
 
                 Image {
                     anchors.fill: parent
-                    source: "file:///home/lilarchie/Pictures/wallpapers/" + fileName
+                    source: "file://" + root.wallpaperDir + "/" + fileName
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
                     sourceSize.width: 220
@@ -132,12 +173,7 @@ Item {
                 onClicked: {
                     container.scale = 0.95
                     resetScaleTimer.start()
-                    let fullPath = "/home/lilarchie/Pictures/wallpapers/" + fileName
-                    let applyProc = Qt.createQmlObject('import Quickshell.Io; Process {}', root);
-                    applyProc.command = ["/home/lilarchie/.config/quickshell/scripts/ApplyWallpaper.sh", fullPath];
-                    applyProc.running = true;
-                    theme.saveWallpaper(fullPath)
-                    theme.setWallpaper(fullPath);
+                    root.applyWallpaper(fileName)
                 }
             }
 

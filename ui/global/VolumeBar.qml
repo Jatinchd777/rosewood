@@ -8,16 +8,13 @@ Row {
     property color accent: theme.primary
 
     width: parent ? parent.width : 0
-    anchors.centerIn: parent ? parent.centerIn : undefined
+    anchors.centerIn: parent
 
     height: parent ? parent.height : 30
     spacing: 10
 
-    PwObjectTracker {
-        id: sinkTracker
-        objects: root.sink ? [root.sink] : []
-    }
-
+    // The default sink is kept alive by AudioManager's PwObjectTracker, so a
+    // second tracker here would be redundant.
     property var sink: Pipewire.defaultAudioSink
 
     property real volume: sink?.audio?.volume ?? 0
@@ -25,9 +22,17 @@ Row {
     property bool bootGuard: false
 
     onVolumeChanged: {
-        if (bootGuard && sink && !muted && !trackMouse.pressed) {
-            soundProc.startDetached()
-        }
+        if (bootGuard && sink && !muted && !trackMouse.pressed)
+            soundTimer.restart()
+    }
+
+    // Debounce the feedback sound: dragging the slider changes volume many
+    // times per second and used to spawn one shell per change.
+    Timer {
+        id: soundTimer
+        interval: 160
+        repeat: false
+        onTriggered: soundProc.startDetached()
     }
 
     Timer {

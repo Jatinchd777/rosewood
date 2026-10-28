@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 
 Rectangle {
@@ -9,7 +10,8 @@ Rectangle {
 
     property color accent: theme.primary
     property bool isActive: false
-    property string outputDir: "/home/lilarchie/Videos"
+    property bool isOpen: true
+    property string outputDir: (Quickshell.env("HOME") || "") + "/Videos"
 
     color: isActive ? theme.error : Qt.alpha(theme.surface, 0.4)
     border.color: isActive ? theme.error : Qt.alpha(theme.surface_variant, 0.4)
@@ -48,11 +50,9 @@ Rectangle {
         id: statusPoller
         interval: 3000
         repeat: true
-        running: true
+        running: toggleRoot.isActive && toggleRoot.isOpen
         onTriggered: {
-            if (toggleRoot.isActive) {
-                checkProc.exec(["bash", "-c", "~/.config/quickshell/scripts/recorder.sh running"])
-            }
+            checkProc.exec(["bash", "-c", "~/.config/quickshell/scripts/recorder.sh running"])
         }
     }
 
@@ -88,6 +88,9 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
 
         SequentialAnimation on opacity {
+            // Without the running gate this animation keeps the whole shell
+            // repainting at 60 fps even when nothing is being recorded.
+            running: toggleRoot.isOpen && toggleRoot.isActive
             loops: Animation.Infinite
             NumberAnimation { to: 0.2; duration: 600; easing.type: Easing.InOutSine }
             NumberAnimation { to: 1.0; duration: 600; easing.type: Easing.InOutSine }

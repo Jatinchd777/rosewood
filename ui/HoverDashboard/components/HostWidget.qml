@@ -6,18 +6,17 @@ Item {
     id: root
 
     property color accent: theme.on_background
+    property string hostName: ""
 
     implicitWidth: column.implicitWidth
     implicitHeight: column.implicitHeight
 
-    Process {
-        id: fetchPcName
-        command: ["uname", "-n"]
-        running: true
-
-        stdout: StdioCollector {
-            id: collector
-        }
+    // Read the hostname from procfs instead of spawning `uname -n`.
+    FileView {
+        id: hostFile
+        path: "/proc/sys/kernel/hostname"
+        printErrors: false
+        onTextChanged: root.hostName = hostFile.text().trim()
     }
 
     Column {
@@ -27,7 +26,7 @@ Item {
         Text {
             id: hostSignature
 
-            text: collector.text.trim()
+            text: root.hostName
 
             color: theme.on_surface_variant
             font.family: "JetBrains Mono"

@@ -1,5 +1,4 @@
 import Quickshell
-import Quickshell.Hyprland
 import QtQuick
 import "../../core/Logic/"
 import "../../ui/global/"
@@ -10,26 +9,32 @@ import "../global/appLauncher/"
 PanelWindow {
     id: root
 
+    property var stateEngine
+    property bool isFullyLoaded: false
+
+    // The hover dashboard reports its animated size back to the window so the
+    // panel can stay small (instead of a 1200x1200 transparent surface).
+    property int hoverWidth: 550
+    property int hoverHeight: 250
+    property bool hoverLoaded: false
+    property bool wallpaperLoaded: false
+    property bool appLauncherLoaded: false
+
     ThemeEngine {
         id: theme
     }
 
-    WallustHotReload {
-        id: wallustColors
+    NotificationManager {
+        id: notificationMgr
+        stateEngine: root.stateEngine
     }
 
-    property var stateEngine
-    property bool isFullyLoaded: false
     mask: Region { item: maskTarget }
 
-    implicitWidth: 1200
-    implicitHeight: 1200
+    implicitWidth: 1010
+    implicitHeight: 600
     exclusiveZone: 26
     color: "transparent"
-
-    ShortcutManager {
-        id: shortcut
-    }
 
     anchors { top: true }
     margins { top: 5 }
@@ -46,16 +51,16 @@ PanelWindow {
         "powermenu":     { w: 400, h: 120, r: 20, modal: true },
         "notifications": { w: 400, h: 80,  r: 20, modal: true },
         "wallpaper":     { w: 1000, h: 500, r: 20, modal: true },
-        "clipboard":     { w: 550, h: 400, r: 20, modal: true},
-        "appLauncher":   {w: 650, h: 500,  r: 20, modal: true}
+        "clipboard":     { w: 550, h: 400, r: 20, modal: true },
+        "appLauncher":   { w: 650, h: 500, r: 20, modal: true }
     }
 
     focusable: stateEngine ? stateRegistry[stateEngine.state]?.modal ?? false : false
 
     function getLayoutValue(state, key) {
         if (pill.state === "hover") {
-            if (key === "w") return hoverDashboard.targetWidth
-            if (key === "h") return hoverDashboard.targetHeight
+            if (key === "w") return root.hoverWidth
+            if (key === "h") return root.hoverHeight
             return 20
         }
         if (pill.state === "notifications") {
@@ -66,6 +71,20 @@ PanelWindow {
 
         const cfg = stateRegistry[state] || stateRegistry["clock"]
         return cfg[key]
+    }
+
+    Connections {
+        target: root.stateEngine
+
+        function onStateChanged() {
+            if (!root.stateEngine)
+                return
+
+            if (root.stateEngine.state === "wallpaper")
+                root.wallpaperLoaded = true
+            else if (root.stateEngine.state === "appLauncher")
+                root.appLauncherLoaded = true
+        }
     }
 
     WorkspaceManager {
@@ -81,7 +100,7 @@ PanelWindow {
     }
 
     ShortcutManager { id: hotkeys; stateEngine: root.stateEngine }
-    IpcManager { id: ipcBridge; stateEngine: root.stateEngine; colorsEngine: wallustColors }
+    IpcManager { id: ipcBridge; stateEngine: root.stateEngine; colorsEngine: theme }
 
     Item {
         id: maskTarget
@@ -94,7 +113,6 @@ PanelWindow {
 
     Rectangle {
         id: pill
-        //color: Qt.alpha(theme.background, 1)
         color: Qt.alpha(theme.background, 0.65)
 
         anchors.horizontalCenter: parent.horizontalCenter
@@ -110,9 +128,14 @@ PanelWindow {
         }
 
         property string state: {
-            let currentState = stateEngine ? stateEngine.state : "clock";
-            let isModal = stateRegistry[currentState]?.modal ?? false;
-            return (hover.hovered && !isModal) ? "hover" : currentState;
+            const currentState = stateEngine ? stateEngine.state : "clock"
+            const isModal = stateRegistry[currentState]?.modal ?? false
+            return (hover.hovered && !isModal) ? "hover" : currentState
+        }
+
+        onStateChanged: {
+            if (state === "hover")
+                root.hoverLoaded = true
         }
 
         width: root.getLayoutValue(state, "w")
@@ -162,12 +185,64 @@ PanelWindow {
             Workspace { visible: pill.state === "workspace" }
             VolumeBar { visible: pill.state === "volume" }
             BrightnessBar { visible: pill.state === "brightness" }
-            HoverDashboard { id: hoverDashboard; visible: pill.state === "hover"; }
+
+            Loader {
+                id: hoverLoader
+                anchors.fill: parent
+                active: root.hoverLoaded
+                visible: pill.state === "hover"
+                sourceComponent: Component {
+                    HoverDashboard {
+                        isOpen: pill.state === "hover"
+                        notificationManager: notificationMgr
+                        onLayoutChanged: (w, h) => {
+                            root.hoverWidth = w
+                            root.hoverHeight = h
+                        }
+                    }
+                }
+            }
+
             PowerMenu { visible: pill.state === "powermenu" }
-            Notifications { id: notifWidget; visible: pill.state === "notifications"; stateEngine: root.stateEngine; }
-            WallpaperPicker { visible: pill.state === "wallpaper" }
-            AppLauncher { visible: pill.state === "appLauncher"}
-            Clipboard { visible: pill.state === "clipboard" }
+            Notifications {
+                id: notifWidget
+                visible: pill.state === "notifications"
+                stateEngine: root.stateEngine
+                manager: notificationMgr
+            }
+
+            Loader {
+                anchors.fill: parent
+                active: root.wallpaperLoaded
+                visible: pill.state === "wallpaper"
+                sourceComponent: Component {
+                    WallpaperPicker {
+                        stateEngine: root.stateEngine
+                        themeEngine: theme
+                    }
+                }
+            }
+
+            Loader {
+                anchors.fill: parent
+                active: root.appLauncherLoaded
+                visible: pill.state === "appLauncher"
+                sourceComponent: Component {
+                    AppLauncher {
+                        stateEngine: root.stateEngine
+                    }
+                }
+
+                onLoaded: {
+                    if (item && item.prepare)
+                        item.prepare()
+                }
+            }
+
+            Clipboard {
+                visible: pill.state === "clipboard"
+                stateEngine: root.stateEngine
+            }
         }
     }
 }

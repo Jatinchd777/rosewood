@@ -1,26 +1,17 @@
 #!/bin/bash
-cache_dir="$HOME/.cache/awww/"
 
-# if [ -n "$1" ]; then
-#   wallpaper_path="$1"
-# else
-#   AWWW_VER=$(awww --version | awk '{print $2}')
-#   current_monitor=$(hyprctl monitors | awk '/^Monitor/{name=$2} /focused: yes/{print name}')
-#   cache_file="$cache_dir$AWWW_VER/$current_monitor"
-#   if [ -f "$cache_file" ]; then
-#     wallpaper_path=$(grep -aoP '/home/.*' "$cache_file" | head -n 1)
-#   fi
-# fi
-
-wallpaper_path=$(cat ~/.cache/wallpaper_state.txt)
+wallpaper_path="${1:-$(cat "$HOME/.cache/wallpaper_state.txt")}"
 
 ln -sf "$wallpaper_path" "$HOME/.config/rofi/.current_wallpaper"
 
-prime-run wallust run "$wallpaper_path" -q
+# Matiz fork (https://github.com/Jatinchd777/Matiz) lives in ~/.local/bin.
+# The official cargo build in ~/.cargo/bin shadows it in PATH and does not
+# support the [semantics] palette used by this config.
+wallust_bin="$HOME/.local/bin/wallust"
+if [ ! -x "$wallust_bin" ]; then
+    wallust_bin="$(command -v wallust || true)"
+fi
 
-#matugen_seed=$(grep '^color4=' ~/.cache/wal/colors.sh | cut -d'"' -f2)
-
-#matugen color hex "$matugen_seed"
-#matugen image "$wallpaper_path" -t scheme-tonal-spot
-
-qs ipc call theme reload 2>/dev/null || true
+if [ -n "$wallust_bin" ]; then
+    "$wallust_bin" run "$wallpaper_path" -q
+fi

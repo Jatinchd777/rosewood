@@ -7,33 +7,44 @@ Item {
 
     property color accent: theme.on_background
     property string location: "Chandigarh"
+    property bool active: true
 
     property string weatherIcon: "󰖐"
     property string weatherTemp: "--°C"
+    property double lastFetch: 0
 
     implicitWidth: weatherDisplay.implicitWidth
     implicitHeight: weatherDisplay.implicitHeight
 
+    function refresh() {
+        if (fetchWeather.running)
+            return
+
+        root.lastFetch = Date.now()
+        fetchWeather.running = true
+    }
+
     Process {
         id: fetchWeather
-        running: true
+        running: false
 
         command: [
-        "curl",
-        "-s",
-        "wttr.in/" + root.location + "?format=%C|%t"
+            "curl",
+            "-s",
+            "wttr.in/" + root.location + "?format=%C|%t"
         ]
 
         stdout: StdioCollector {
             id: weatherCollector
 
             onStreamFinished: {
-                let raw = text.trim()
-                if (!raw || !raw.includes("|")) return
+                const raw = weatherCollector.text.trim()
+                if (!raw || !raw.includes("|"))
+                    return
 
-                let parts = raw.split("|")
-                let condition = parts[0].trim().toLowerCase()
-                let temp = parts[1].trim().replace("+", "")
+                const parts = raw.split("|")
+                const condition = parts[0].trim().toLowerCase()
+                const temp = parts[1].trim().replace("+", "")
 
                 let icon = "󰖐"
 
@@ -74,14 +85,19 @@ Item {
 
     Timer {
         interval: 1800000
-        running: true
+        running: root.active
         repeat: true
-        triggeredOnStart: false
+        onTriggered: root.refresh()
+    }
 
-        onTriggered: {
-            fetchWeather.running = false
-            fetchWeather.running = true
-        }
+    onActiveChanged: {
+        if (root.active && Date.now() - root.lastFetch > 1800000)
+            root.refresh()
+    }
+
+    Component.onCompleted: {
+        if (root.active)
+            root.refresh()
     }
 
     Row {

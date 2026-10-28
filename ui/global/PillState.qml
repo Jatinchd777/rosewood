@@ -92,6 +92,15 @@ Item {
         notificationTimer.start()
     }
 
+    function pauseNotification() {
+        notificationTimer.stop()
+    }
+
+    function resumeNotification() {
+        if (root.state === "notifications")
+            notificationTimer.restart()
+    }
+
     Timer {
         id: volumeTimer
         interval: 1000

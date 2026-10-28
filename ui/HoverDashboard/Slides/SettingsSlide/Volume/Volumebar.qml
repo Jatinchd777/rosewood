@@ -9,26 +9,13 @@ Item {
 
     property color accent: theme.primary
 
+    // AudioManager owns the tracker for the default sink.
     property var sink: Pipewire.defaultAudioSink
     property real volume: sink?.audio?.volume ?? 0
     property bool muted: settingsAudioRoot.volume <= 0
-    property bool bootGuard: false
 
     property real visualVolume: dragMouseArea.pressed ? localDragVolume : settingsAudioRoot.volume
     property real localDragVolume: 0.0
-
-    PwObjectTracker {
-        id: sinkTracker
-        objects: settingsAudioRoot.sink ? [settingsAudioRoot.sink] : []
-    }
-
-    Timer {
-        id: bootTimer
-        interval: 400
-        running: true
-        repeat: false
-        onTriggered: settingsAudioRoot.bootGuard = true
-    }
 
     Rectangle {
         id: track

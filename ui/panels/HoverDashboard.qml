@@ -14,17 +14,13 @@ Item {
 
     property int activeTab: 0
     property string subState: "default"
+    property var notificationManager
+    // Set by MainPanel while the hover pill is actually showing. `visible` on
+    // a Loader's child stays true when the loader is hidden, so it cannot be
+    // used to gate timers.
+    property bool isOpen: false
 
-    Behavior on width { NumberAnimation { duration: 350; easing.type: Easing.OutQuint } }
-    Behavior on height { NumberAnimation { duration: 350; easing.type: Easing.OutQuint } }
-
-    DashboardNavBar {
-        activeTab: dashboardRoot.activeTab
-        onTabChanged: (tab) => {
-            dashboardRoot.activeTab = tab
-            dashboardRoot.subState = "default"
-        }
-    }
+    signal layoutChanged(int w, int h)
 
     readonly property var layoutRegistry: {
         0: {
@@ -43,8 +39,20 @@ Item {
     property int targetWidth: layoutRegistry[activeTab]?.[subState]?.w ?? layoutRegistry[activeTab]?.["default"]?.w ?? 350
     property int targetHeight: layoutRegistry[activeTab]?.[subState]?.h ?? layoutRegistry[activeTab]?.["default"]?.h ?? 180
 
+    onTargetWidthChanged: layoutChanged(targetWidth, targetHeight)
+    onTargetHeightChanged: layoutChanged(targetWidth, targetHeight)
+
+    DashboardNavBar {
+        activeTab: dashboardRoot.activeTab
+        onTabChanged: (tab) => {
+            dashboardRoot.activeTab = tab
+            dashboardRoot.subState = "default"
+        }
+    }
+
     ClockSlide {
         visible: dashboardRoot.activeTab === 0 && dashboardRoot.subState === "default"
+        isOpen: dashboardRoot.isOpen
         anchors.fill: parent
         currentSubState: dashboardRoot.subState
 
@@ -65,12 +73,13 @@ Item {
 
     MediaSlide {
         visible: dashboardRoot.activeTab === 1
-        activePlayer: dashboardRoot.activePlayer
+        isOpen: dashboardRoot.isOpen
     }
 
     SettingsSlide {
         visible: dashboardRoot.activeTab === 2
         anchors.fill: parent
+        isOpen: dashboardRoot.isOpen
 
         currentSubState: dashboardRoot.subState
 
@@ -82,5 +91,6 @@ Item {
     NotificationSlide {
         visible: dashboardRoot.activeTab === 3
         anchors.fill: parent
+        manager: dashboardRoot.notificationManager
     }
 }

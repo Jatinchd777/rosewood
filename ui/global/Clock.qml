@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell
 import QtQuick.Layouts
-import "../core/Logic"
 
 Row {
     id: root

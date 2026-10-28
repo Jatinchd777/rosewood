@@ -1,47 +1,48 @@
-import Quickshell
 import QtQuick
-import "../../ui/global/PillState.qml"
 
 Item {
+    id: shortcutsRoot
+
+    property bool active: false
+    property var stateEngine
+
     Shortcut {
         sequence: "Escape"
-        enabled: root.visible
+        enabled: shortcutsRoot.active
         onActivated: {
-            stateEngine.showClock()
+            if (shortcutsRoot.stateEngine)
+                shortcutsRoot.stateEngine.showClock()
         }
     }
 
     Shortcut {
-        enabled: root.visible
+        enabled: shortcutsRoot.active
         sequence: "Down"
         onActivated: if (clipboardListView.currentIndex < clipboardListView.count - 1) clipboardListView.currentIndex++
     }
     Shortcut {
-        enabled: root.visible
+        enabled: shortcutsRoot.active
         sequence: "J"
         onActivated: if (clipboardListView.currentIndex < clipboardListView.count - 1) clipboardListView.currentIndex++
     }
     Shortcut {
-        enabled: root.visible
+        enabled: shortcutsRoot.active
         sequence: "Up"
         onActivated: if (clipboardListView.currentIndex > 0) clipboardListView.currentIndex--
     }
     Shortcut {
-        enabled: root.visible
+        enabled: shortcutsRoot.active
         sequence: "K"
         onActivated: if (clipboardListView.currentIndex > 0) clipboardListView.currentIndex--
     }
     Shortcut {
         sequences: ["Enter", "Return"]
-        enabled: root.visible
+        enabled: shortcutsRoot.active
         onActivated: {
-            copySelectedToSystem(clipboardListView.currentIndex);
+            copySelectedToSystem(clipboardListView.currentIndex)
 
-            if (typeof stateEngine !== "undefined") {
-                stateEngine.showClock();
-            } else {
-                console.warn("stateEngine is out of scope for Shortcut!");
-            }
+            if (shortcutsRoot.stateEngine)
+                shortcutsRoot.stateEngine.showClock()
         }
     }
 }
