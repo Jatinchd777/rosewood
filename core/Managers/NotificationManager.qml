@@ -21,6 +21,9 @@ Item {
     property alias history: historyModel
 
     readonly property int count: historyModel.count
+    readonly property int historyLimit: root.settings && root.settings.notificationHistoryLimit > 0
+        ? root.settings.notificationHistoryLimit
+        : 50
 
     function dismissLatest() {
         if (root.latest)
@@ -87,6 +90,32 @@ Item {
             root.latest = null
     }
 
+    function trimHistory() {
+        while (historyModel.count > root.historyLimit) {
+            const index = historyModel.count - 1
+            const item = historyModel.get(index)
+            const notification = item.notifObject
+
+            if (notification) {
+                notification.dismiss()
+                // A dismiss may synchronously remove the row through
+                // notificationClosed(); only remove it here if it survived.
+                if (historyModel.count > index && historyModel.get(index).notifObject === notification)
+                    historyModel.remove(index)
+            } else {
+                historyModel.remove(index)
+            }
+        }
+    }
+
+    Connections {
+        target: root.settings
+
+        function onNotificationHistoryLimitChanged() {
+            root.trimHistory()
+        }
+    }
+
     ListModel { id: historyModel }
 
     Notifs.NotificationServer {
@@ -99,11 +128,15 @@ Item {
             // dismissed later from the dashboard history.
             notification.tracked = true
 
-            root.latest = notification
-            root.latestSummary = notification.summary || "Notification"
-            root.latestBody = notification.body || ""
-            root.latestAppName = notification.appName || "System"
-            root.latestUrgency = notification.urgency
+            const quiet = root.settings ? root.settings.doNotDisturb : false
+
+            if (!quiet) {
+                root.latest = notification
+                root.latestSummary = notification.summary || "Notification"
+                root.latestBody = notification.body || ""
+                root.latestAppName = notification.appName || "System"
+                root.latestUrgency = notification.urgency
+            }
 
             historyModel.insert(0, {
                 "notifSummary": notification.summary || "",
@@ -115,14 +148,9 @@ Item {
             })
 
             // Keep memory bounded even when notifications are never dismissed.
-            if (historyModel.count > 50) {
-                const oldest = historyModel.get(historyModel.count - 1)
-                if (oldest.notifObject)
-                    oldest.notifObject.dismiss()
-                historyModel.remove(historyModel.count - 1)
-            }
+            root.trimHistory()
 
-            if (root.stateEngine)
+            if (root.stateEngine && !quiet)
                 root.stateEngine.showNotifications()
 
             notification.closed.connect((reason) => root.notificationClosed(notification, reason))

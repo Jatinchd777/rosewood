@@ -8,11 +8,15 @@ Item {
     property color accent: theme.on_background
     property string location: "Chandigarh"
     property string unit: "metric"
+    property bool showWeather: true
+    property int refreshMinutes: 30
     property bool active: true
 
     property string weatherIcon: "󰖐"
     property string weatherTemp: "--°C"
     property double lastFetch: 0
+
+    readonly property int refreshIntervalMs: Math.max(1, root.refreshMinutes) * 60000
 
     implicitWidth: weatherDisplay.implicitWidth
     implicitHeight: weatherDisplay.implicitHeight
@@ -85,29 +89,39 @@ Item {
     }
 
     Timer {
-        interval: 1800000
-        running: root.active
+        interval: root.refreshIntervalMs
+        running: root.active && root.showWeather
         repeat: true
         onTriggered: root.refresh()
     }
 
     onActiveChanged: {
-        if (root.active && Date.now() - root.lastFetch > 1800000)
+        if (root.active && root.showWeather && Date.now() - root.lastFetch > root.refreshIntervalMs)
+            root.refresh()
+    }
+
+    onShowWeatherChanged: {
+        if (root.active && root.showWeather && Date.now() - root.lastFetch > root.refreshIntervalMs)
+            root.refresh()
+    }
+
+    onRefreshMinutesChanged: {
+        if (root.active && root.showWeather && Date.now() - root.lastFetch > root.refreshIntervalMs)
             root.refresh()
     }
 
     onLocationChanged: {
-        if (root.active)
+        if (root.active && root.showWeather)
             root.refresh()
     }
 
     onUnitChanged: {
-        if (root.active)
+        if (root.active && root.showWeather)
             root.refresh()
     }
 
     Component.onCompleted: {
-        if (root.active)
+        if (root.active && root.showWeather)
             root.refresh()
     }
 

@@ -17,28 +17,43 @@ Item {
     // Dashboard
     property string clockFormat: "12h"
     property bool showSeconds: true
+    property bool showDate: true
+    property string dateFormat: "long"
     property string weatherLocation: "Chandigarh"
     property string weatherUnit: "metric"
+    property bool showWeather: true
+    property int weatherRefresh: 30
     property int defaultDashboardTab: 0
 
     // Bar
     property int marginTop: 5
     property int exclusiveZone: 26
     property real backgroundOpacity: 0.65
+    property int statusDuration: 1000
+    property int workspaceCount: 10
 
     // Launcher
     property int launcherColumns: 2
+    property int launcherMaxResults: 50
+    property int launcherIconSize: 32
 
     // Wallpaper
     property string wallpaperDirectory: "~/Pictures/wallpapers"
     property real wallpaperTransition: 0.75
+    property string wallpaperTransitionType: "random"
+    property string wallpaperResize: "crop"
 
     // Notifications
     property int notificationTimeout: 3000
     property bool keepExpiredNotifications: true
+    property bool doNotDisturb: false
+    property int notificationHistoryLimit: 50
 
     // Lock screen
     property string lockMonitor: "eDP-1"
+    property bool lockUseScreenshot: true
+    property int lockBlur: 32
+    property real lockDim: 0.45
 
     readonly property string wallpaperDirectoryResolved: root.resolvePath(root.wallpaperDirectory)
     readonly property bool pendingSave: saveTimer.running
@@ -113,23 +128,38 @@ Item {
 
         root.clockFormat = root.enumOr(dashboard.clockFormat, ["12h", "24h"], "12h")
         root.showSeconds = root.boolOr(dashboard.showSeconds, true)
+        root.showDate = root.boolOr(dashboard.showDate, true)
+        root.dateFormat = root.enumOr(dashboard.dateFormat, ["long", "short", "iso"], "long")
         root.weatherLocation = root.stringOr(dashboard.weatherLocation, "Chandigarh")
         root.weatherUnit = root.enumOr(dashboard.weatherUnit, ["metric", "imperial"], "metric")
+        root.showWeather = root.boolOr(dashboard.showWeather, true)
+        root.weatherRefresh = Math.round(root.numberOr(dashboard.weatherRefreshMinutes, 30, 5, 120))
         root.defaultDashboardTab = Math.round(root.numberOr(dashboard.defaultDashboardTab, 0, 0, 3))
 
         root.marginTop = Math.round(root.numberOr(bar.marginTop, 5, 0, 40))
         root.exclusiveZone = Math.round(root.numberOr(bar.exclusiveZone, 26, 0, 80))
         root.backgroundOpacity = root.numberOr(bar.backgroundOpacity, 0.65, 0.2, 1)
+        root.statusDuration = Math.round(root.numberOr(bar.statusDuration, 1000, 500, 5000))
+        root.workspaceCount = Math.round(root.numberOr(bar.workspaceCount, 10, 1, 10))
 
         root.launcherColumns = Math.round(root.numberOr(launcher.columns, 2, 1, 4))
+        root.launcherMaxResults = Math.round(root.numberOr(launcher.maxResults, 50, 5, 100))
+        root.launcherIconSize = Math.round(root.numberOr(launcher.iconSize, 32, 20, 48))
 
         root.wallpaperDirectory = root.stringOr(wallpaper.directory, "~/Pictures/wallpapers")
         root.wallpaperTransition = root.numberOr(wallpaper.transitionDuration, 0.75, 0, 2)
+        root.wallpaperTransitionType = root.enumOr(wallpaper.transitionType, ["random", "fade", "wipe", "grow", "wave"], "random")
+        root.wallpaperResize = root.enumOr(wallpaper.resizeMode, ["crop", "fit", "stretch", "no"], "crop")
 
         root.notificationTimeout = Math.round(root.numberOr(notifications.toastTimeout, 3000, 1000, 30000))
         root.keepExpiredNotifications = root.boolOr(notifications.keepExpired, true)
+        root.doNotDisturb = root.boolOr(notifications.doNotDisturb, false)
+        root.notificationHistoryLimit = Math.round(root.numberOr(notifications.historyLimit, 50, 10, 200))
 
         root.lockMonitor = root.stringOr(lock.monitor, "eDP-1")
+        root.lockUseScreenshot = root.boolOr(lock.useScreenshot, true)
+        root.lockBlur = Math.round(root.numberOr(lock.blur, 32, 0, 64))
+        root.lockDim = root.numberOr(lock.dim, 0.45, 0, 0.85)
 
         root.applying = false
         root.parseError = ""
@@ -142,28 +172,43 @@ Item {
             "dashboard": {
                 "clockFormat": root.clockFormat,
                 "showSeconds": root.showSeconds,
+                "showDate": root.showDate,
+                "dateFormat": root.dateFormat,
                 "weatherLocation": root.weatherLocation,
                 "weatherUnit": root.weatherUnit,
+                "showWeather": root.showWeather,
+                "weatherRefreshMinutes": root.weatherRefresh,
                 "defaultDashboardTab": root.defaultDashboardTab
             },
             "bar": {
                 "marginTop": root.marginTop,
                 "exclusiveZone": root.exclusiveZone,
-                "backgroundOpacity": root.backgroundOpacity
+                "backgroundOpacity": root.backgroundOpacity,
+                "statusDuration": root.statusDuration,
+                "workspaceCount": root.workspaceCount
             },
             "launcher": {
-                "columns": root.launcherColumns
+                "columns": root.launcherColumns,
+                "maxResults": root.launcherMaxResults,
+                "iconSize": root.launcherIconSize
             },
             "wallpaper": {
                 "directory": root.wallpaperDirectory,
-                "transitionDuration": root.wallpaperTransition
+                "transitionDuration": root.wallpaperTransition,
+                "transitionType": root.wallpaperTransitionType,
+                "resizeMode": root.wallpaperResize
             },
             "notifications": {
                 "toastTimeout": root.notificationTimeout,
-                "keepExpired": root.keepExpiredNotifications
+                "keepExpired": root.keepExpiredNotifications,
+                "doNotDisturb": root.doNotDisturb,
+                "historyLimit": root.notificationHistoryLimit
             },
             "lock": {
-                "monitor": root.lockMonitor
+                "monitor": root.lockMonitor,
+                "useScreenshot": root.lockUseScreenshot,
+                "blur": root.lockBlur,
+                "dim": root.lockDim
             }
         }
     }
@@ -188,18 +233,33 @@ Item {
 
         root.clockFormat = "12h"
         root.showSeconds = true
+        root.showDate = true
+        root.dateFormat = "long"
         root.weatherLocation = "Chandigarh"
         root.weatherUnit = "metric"
+        root.showWeather = true
+        root.weatherRefresh = 30
         root.defaultDashboardTab = 0
         root.marginTop = 5
         root.exclusiveZone = 26
         root.backgroundOpacity = 0.65
+        root.statusDuration = 1000
+        root.workspaceCount = 10
         root.launcherColumns = 2
+        root.launcherMaxResults = 50
+        root.launcherIconSize = 32
         root.wallpaperDirectory = "~/Pictures/wallpapers"
         root.wallpaperTransition = 0.75
+        root.wallpaperTransitionType = "random"
+        root.wallpaperResize = "crop"
         root.notificationTimeout = 3000
         root.keepExpiredNotifications = true
+        root.doNotDisturb = false
+        root.notificationHistoryLimit = 50
         root.lockMonitor = "eDP-1"
+        root.lockUseScreenshot = true
+        root.lockBlur = 32
+        root.lockDim = 0.45
 
         root.applying = false
         root.save()
@@ -207,18 +267,33 @@ Item {
 
     onClockFormatChanged: root.scheduleSave()
     onShowSecondsChanged: root.scheduleSave()
+    onShowDateChanged: root.scheduleSave()
+    onDateFormatChanged: root.scheduleSave()
     onWeatherLocationChanged: root.scheduleSave()
     onWeatherUnitChanged: root.scheduleSave()
+    onShowWeatherChanged: root.scheduleSave()
+    onWeatherRefreshChanged: root.scheduleSave()
     onDefaultDashboardTabChanged: root.scheduleSave()
     onMarginTopChanged: root.scheduleSave()
     onExclusiveZoneChanged: root.scheduleSave()
     onBackgroundOpacityChanged: root.scheduleSave()
+    onStatusDurationChanged: root.scheduleSave()
+    onWorkspaceCountChanged: root.scheduleSave()
     onLauncherColumnsChanged: root.scheduleSave()
+    onLauncherMaxResultsChanged: root.scheduleSave()
+    onLauncherIconSizeChanged: root.scheduleSave()
     onWallpaperDirectoryChanged: root.scheduleSave()
     onWallpaperTransitionChanged: root.scheduleSave()
+    onWallpaperTransitionTypeChanged: root.scheduleSave()
+    onWallpaperResizeChanged: root.scheduleSave()
     onNotificationTimeoutChanged: root.scheduleSave()
     onKeepExpiredNotificationsChanged: root.scheduleSave()
+    onDoNotDisturbChanged: root.scheduleSave()
+    onNotificationHistoryLimitChanged: root.scheduleSave()
     onLockMonitorChanged: root.scheduleSave()
+    onLockUseScreenshotChanged: root.scheduleSave()
+    onLockBlurChanged: root.scheduleSave()
+    onLockDimChanged: root.scheduleSave()
 
     Timer {
         id: saveTimer

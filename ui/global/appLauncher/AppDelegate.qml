@@ -6,7 +6,7 @@ import Quickshell.Widgets
 Item {
     id: delegateRoot
     width: Math.floor(launcherRoot.absoluteGridWidth / Math.max(1, launcherRoot.columns))
-    height: 52
+    height: Math.max(52, launcherRoot.iconSize + 20)
 
     required property var modelData
 
@@ -25,8 +25,8 @@ Item {
 
             IconImage {
                 id: appIcon
-                Layout.preferredWidth: 32
-                Layout.preferredHeight: 32
+                Layout.preferredWidth: launcherRoot.iconSize
+                Layout.preferredHeight: launcherRoot.iconSize
 
                 source: Quickshell.iconPath(
                     delegateRoot.modelData.icon ? delegateRoot.modelData.icon : "application-x-executable",

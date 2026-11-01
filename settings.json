@@ -3,27 +3,42 @@
   "dashboard": {
     "clockFormat": "12h",
     "showSeconds": true,
+    "showDate": true,
+    "dateFormat": "long",
     "weatherLocation": "Chandigarh",
-    "weatherUnit": "imperial",
+    "weatherUnit": "metric",
+    "showWeather": true,
+    "weatherRefreshMinutes": 30,
     "defaultDashboardTab": 0
   },
   "bar": {
-    "marginTop": 8,
-    "exclusiveZone": 32,
-    "backgroundOpacity": 0.75
+    "marginTop": 5,
+    "exclusiveZone": 26,
+    "backgroundOpacity": 0.65,
+    "statusDuration": 500,
+    "workspaceCount": 10
   },
   "launcher": {
-    "columns": 2
+    "columns": 2,
+    "maxResults": 70,
+    "iconSize": 28
   },
   "wallpaper": {
     "directory": "~/Pictures/wallpapers",
-    "transitionDuration": 1.5
+    "transitionDuration": 1.5,
+    "transitionType": "random",
+    "resizeMode": "crop"
   },
   "notifications": {
     "toastTimeout": 3000,
-    "keepExpired": true
+    "keepExpired": true,
+    "doNotDisturb": false,
+    "historyLimit": 50
   },
   "lock": {
-    "monitor": "eDP-1"
+    "monitor": "eDP-1",
+    "useScreenshot": true,
+    "blur": 32,
+    "dim": 0.45
   }
 }

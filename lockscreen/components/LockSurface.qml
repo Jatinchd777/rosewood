@@ -12,8 +12,12 @@ Rectangle {
 
     required property var context
     property bool screenshot: false
+    property var settings
 
     readonly property string screenshotPath: Quickshell.env("QS_LOCK_BG") || ""
+    readonly property bool useCapturedDesktop: root.screenshot && (root.settings ? root.settings.lockUseScreenshot : true)
+    readonly property int blurAmount: root.settings ? root.settings.lockBlur : 32
+    readonly property real dimAmount: root.settings ? root.settings.lockDim : 0.45
 
     // 🎬 Animation State Management
     property bool animateIn: false
@@ -60,14 +64,14 @@ Rectangle {
         Image {
             id: wallpaper
             anchors.fill: parent
-            source: root.screenshot && root.screenshotPath
+            source: root.useCapturedDesktop && root.screenshotPath
             ? root.screenshotPath
             : (theme.currentWallpaper ? theme.currentWallpaper : "")
             fillMode: Image.PreserveAspectCrop
             cache: false
 
             onStatusChanged: {
-                if (root.screenshot && root.screenshotPath && status === Image.Error) {
+                if (root.useCapturedDesktop && root.screenshotPath && status === Image.Error) {
                     wallpaper.source = theme.currentWallpaper ? theme.currentWallpaper : ""
                 }
             }
@@ -88,11 +92,11 @@ Rectangle {
                 }
             }
 
-            layer.enabled: true
+            layer.enabled: root.blurAmount > 0
             layer.effect: MultiEffect {
-                blurEnabled: true
-                blurMax: 32
-                blur: 1.0
+                blurEnabled: root.blurAmount > 0
+                blurMax: Math.max(1, root.blurAmount)
+                blur: root.blurAmount > 0 ? 1.0 : 0.0
                 contrast: 0.20
                 blurMultiplier: 0.5
             }
@@ -101,7 +105,7 @@ Rectangle {
         // 🌑 Dark Vignette Overlay
         Rectangle {
             anchors.fill: parent
-            color: Qt.alpha("black", 0.45)
+            color: Qt.alpha("black", root.dimAmount)
             opacity: root.active ? 1.0 : 0.0
 
             Behavior on opacity {

@@ -37,7 +37,7 @@ Everything in rosewood lives in a single floating **pill** at the top of the scr
 ### The pill
 - **One widget, many faces** — a state machine morphs a single pill between clock, volume, brightness, workspace, notifications, power, wallpaper, clipboard and launcher with animated width/height/radius transitions.
 - **Hover to expand** — parking the cursor on the pill opens the hover dashboard instead of switching states; modal views always take priority.
-- **Transient states** — volume/brightness/workspaces show themselves for 1s after a change, notification toasts for 3s by default, then fall back to the clock.
+- **Transient states** — volume/brightness/workspaces show themselves for 1s after a change (configurable), notification toasts for 3s by default, then fall back to the clock.
 
 ### Hover dashboard
 - **Clock tab** — big clock and date, weather from wttr.in, CPU and RAM load, ping to `1.1.1.1`, battery (UPower), Wi-Fi network, `user@host`, and clickable workspace dots. Double-click (or right-click) the clock for a full **month calendar** with today highlighted.
@@ -55,19 +55,19 @@ Everything in rosewood lives in a single floating **pill** at the top of the scr
 
 ### Lockscreen
 - True Wayland session lock (`WlSessionLock`) with a **PAM** password prompt (include-free `pam_unix` config).
-- Freezes the screen with `grim`, then fades a blurred, vignetted copy of your wallpaper over it.
+- Freezes the screen with `grim`, then fades a blurred, dimmed copy of that capture over it. The background can instead use the saved wallpaper, and the blur radius and dim level are configurable.
 - Animated idle → auth flow: *"PRESS ANY KEY TO UNLOCK"*, dots while PAM checks, red *"Incorrect password"* on failure, and `lockscreen_preview.qml` for testing without locking yourself out.
 
 ### Settings app
 - A separate Quickshell config (`settings/settings.qml`) with its own window, sidebar and wallust-tinted controls.
 - Uses the same translucent palette surface as the pill: the settings background opacity follows `bar.backgroundOpacity` live.
 - Edits `~/.config/quickshell/settings.json`; the running shell watches the file and applies changes **live** — no restart.
-- Covers clock format and seconds, weather location and units, default dashboard tab, bar margin/exclusive zone/opacity, launcher columns, wallpaper directory and transition duration, notification timeout and history, and the lock-screen monitor.
+- Covers clock format, seconds, date style and weather (location, units, visibility, refresh interval), bar geometry/opacity/popup duration/workspace count, launcher columns/result limit/icon size, wallpaper directory/duration/transition/fill mode, notification timeout, DND, expired-notification and history limits, and the lock-screen monitor, background source, blur and dim.
 - `settings/launch.sh` floats, sizes, centers and focuses the window on Hyprland, and reopens the existing window instead of starting a second instance.
 
 ### Theming
 - **Wallust** (Material You palette) regenerates the shell live: change wallpaper → palette rewrite → shell recolours itself in place via the hot-reload engine, no restart.
-- The wallpaper picker (grid + fuzzy search over the configured wallpaper directory, `~/Pictures/wallpapers` by default) applies wallpapers through [awww](https://codeberg.org/LGFae/awww) with a random transition, reruns wallust, and pings kitty + cava to retheme.
+- The wallpaper picker (grid + fuzzy search over the configured wallpaper directory, `~/Pictures/wallpapers` by default) applies wallpapers through [awww](https://codeberg.org/LGFae/awww) with a configurable transition type, duration and fill mode, reruns wallust, and pings kitty + cava to retheme.
 - Every widget reads semantic Material tokens (`primary`, `surface_container`, `error`, …), so all screens — bar, dashboard, launcher, lock — change clothes together.
 
 ## Showcase
@@ -93,7 +93,7 @@ Everything in rosewood lives in a single floating **pill** at the top of the scr
 | `wl-clipboard` (`wl-paste` / `wl-copy`) | Clipboard history |
 | `gpu-screen-recorder` | Screen recording toggle |
 | `grim` | Lock screen background capture |
-| `jq` | Reads the lock-screen monitor from `settings.json` |
+| `jq` | Reads lock-screen options from `settings.json` |
 | `rfkill` | Aeroplane mode toggle |
 | `power-profiles-daemon` (`powerprofilesctl`) | Power profile toggle |
 | `systemd-inhibit` | Keep-awake toggle |
@@ -126,9 +126,9 @@ A few things you'll likely want to adjust first:
 
 | What | Where |
 | --- | --- |
-| Weather location, units and clock format | `settings.json` (or the Settings app) |
-| Wallpaper directory and transition duration | `settings.json` (or the Settings app) |
-| Lock-screen monitor (`eDP-1` by default) | `settings.json` (or the Settings app) |
+| Clock, date and weather options | `settings.json` (or the Settings app) |
+| Wallpaper directory, transition and fill mode | `settings.json` (or the Settings app) |
+| Lock-screen monitor (`eDP-1` by default), blur and dim | `settings.json` (or the Settings app) |
 | Screen recordings directory (`~/Videos`) | `.../SettingsSlide/ScreenRecord/ScreenRecordToggle.qml` |
 | `prime-run` prefix in the theming script (NVIDIA only) | `scripts/WallustAwww.sh` |
 | Palette output: wallust must write `core/Logic/WallustColors.js` | your `~/.config/wallust/wallust.toml` |
@@ -165,12 +165,12 @@ The settings app is a separate Quickshell config (`settings/settings.qml`). It w
 
 | Section | Keys |
 | --- | --- |
-| `dashboard` | `clockFormat` (`12h` / `24h`), `showSeconds`, `weatherLocation`, `weatherUnit` (`metric` / `imperial`), `defaultDashboardTab` (`0` clock, `1` media, `2` controls, `3` notifications) |
-| `bar` | `marginTop`, `exclusiveZone` (pixels), `backgroundOpacity` (`0.2`–`1`) |
-| `launcher` | `columns` (`1`–`4`) |
-| `wallpaper` | `directory` (supports `~`), `transitionDuration` (seconds) |
-| `notifications` | `toastTimeout` (milliseconds), `keepExpired` |
-| `lock` | `monitor` (output name used by `grim`) |
+| `dashboard` | `clockFormat` (`12h` / `24h`), `showSeconds`, `showDate`, `dateFormat` (`long` / `short` / `iso`), `weatherLocation`, `weatherUnit` (`metric` / `imperial`), `showWeather`, `weatherRefreshMinutes` (`5`–`120`), `defaultDashboardTab` (`0` clock, `1` media, `2` controls, `3` notifications) |
+| `bar` | `marginTop`, `exclusiveZone` (pixels), `backgroundOpacity` (`0.2`–`1`), `statusDuration` (milliseconds, `500`–`5000`), `workspaceCount` (`1`–`10`) |
+| `launcher` | `columns` (`1`–`4`), `maxResults` (`5`–`100`, applied while searching), `iconSize` (`20`–`48` pixels) |
+| `wallpaper` | `directory` (supports `~`), `transitionDuration` (seconds), `transitionType` (`random` / `fade` / `wipe` / `grow` / `wave`), `resizeMode` (`crop` / `fit` / `stretch` / `no`) |
+| `notifications` | `toastTimeout` (milliseconds), `keepExpired`, `doNotDisturb`, `historyLimit` (`10`–`200`) |
+| `lock` | `monitor` (output name used by `grim`), `useScreenshot` (capture the desktop; off uses the saved wallpaper), `blur` (`0`–`64`), `dim` (`0`–`0.85`) |
 
 Values outside their supported range are clamped, and missing keys fall back to defaults, so the file can be edited by hand safely.
 
@@ -258,6 +258,7 @@ wallpaper ──▶ scripts/ApplyWallpaper.sh ──▶ awww (set wallpaper)
 - `core/Logic/WallustColors.js` is generated — edit your wallust config, not this file.
 - `core/Logic/ThemeColors.js` is a matugen-generated palette kept around as an alternative source; the shell reads the wallust one.
 - The current wallpaper path is remembered between sessions in `~/.cache/wallpaper_state.txt`, so the lock screen and theme engine can draw the same image after a reboot.
+- `scripts/ApplyWallpaper.sh` takes `path [duration] [transitionType] [resizeMode]`, so it can also be called by hand: `scripts/ApplyWallpaper.sh ~/Pictures/wallpapers/foo.png 1.5 fade fit`.
 
 ## Structure
 
@@ -278,6 +279,7 @@ rosewood/
 │   │                            # wallpaper picker · clipboard · app launcher
 │   └── HoverDashboard/          # dashboard tabs and widgets
 ├── lockscreen/                  # PAM session lock + preview window
+│   └── core/Logic -> ../../core/Logic  # shared settings store
 └── scripts/                     # wallpaper, theming, recording helpers
 ```
 

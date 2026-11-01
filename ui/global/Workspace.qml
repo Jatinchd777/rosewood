@@ -9,6 +9,7 @@ Row {
 
     property color accent: theme.primary
     property color darkAccent: theme.secondary
+    property int count: 10
 
     // Build the id -> workspace map once per workspace-list change instead of
     // running Array.find() inside ten separate dot bindings.
@@ -23,7 +24,7 @@ Row {
     readonly property int focusedId: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : -1
 
     Repeater {
-        model: 10
+        model: workspaceRow.count
         Rectangle {
             id: dot
 

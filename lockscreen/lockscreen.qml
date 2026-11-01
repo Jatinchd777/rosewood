@@ -1,9 +1,14 @@
 import Quickshell
 import Quickshell.Wayland
 import "./components/"
+import "./core/Logic/"
 
 ShellRoot {
     id: root
+
+    RosewoodSettings {
+        id: lockSettings
+    }
 
     LockContext {
         id: lockContext
@@ -25,6 +30,7 @@ ShellRoot {
             LockSurface {
                 anchors.fill: parent
                 context: lockContext
+                settings: lockSettings
                 screenshot: true
             }
         }

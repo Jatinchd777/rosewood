@@ -11,6 +11,10 @@ Item {
     property string description
     default property alias content: contentColumn.data
 
+    function scrollToTop(): void {
+        flick.contentY = 0
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.leftMargin: 32

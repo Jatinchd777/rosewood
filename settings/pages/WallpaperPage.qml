@@ -57,4 +57,29 @@ PageContent {
         suffix: " s"
         onMoved: (value) => page.settings.wallpaperTransition = value
     }
+
+    SettingChoice {
+        theme: page.theme
+        title: "Transition"
+        description: "Animation awww uses when switching wallpapers."
+        options: ["Random", "Fade", "Wipe", "Grow", "Wave"]
+        values: ["random", "fade", "wipe", "grow", "wave"]
+        currentValue: page.settings.wallpaperTransitionType
+        onSelected: (value) => page.settings.wallpaperTransitionType = value
+    }
+
+    SectionTitle {
+        theme: page.theme
+        text: "LAYOUT"
+    }
+
+    SettingChoice {
+        theme: page.theme
+        title: "Fill mode"
+        description: "How awww scales the image to fit your screen."
+        options: ["Crop", "Fit", "Stretch", "Center"]
+        values: ["crop", "fit", "stretch", "no"]
+        currentValue: page.settings.wallpaperResize
+        onSelected: (value) => page.settings.wallpaperResize = value
+    }
 }

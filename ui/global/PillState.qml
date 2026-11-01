@@ -104,7 +104,7 @@ Item {
 
     Timer {
         id: volumeTimer
-        interval: 1000
+        interval: root.settings ? root.settings.statusDuration : 1000
         onTriggered: {
             if (root.state !== "volume") return
             if (root.isHoverOverrideActive()) volumeTimer.restart()
@@ -114,7 +114,7 @@ Item {
 
     Timer {
         id: workspaceTimer
-        interval: 1000
+        interval: root.settings ? root.settings.statusDuration : 1000
         onTriggered: {
             if (root.state !== "workspace") return
             if (root.isHoverOverrideActive()) workspaceTimer.restart()
@@ -134,7 +134,7 @@ Item {
 
     Timer {
         id: brightnessTimer
-        interval: 1000
+        interval: root.settings ? root.settings.statusDuration : 1000
         onTriggered: {
             if (root.state !== "brightness") return
             if (root.isHoverOverrideActive()) brightnessTimer.restart()

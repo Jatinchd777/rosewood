@@ -38,6 +38,18 @@ PageContent {
         onMoved: (value) => page.settings.exclusiveZone = Math.round(value)
     }
 
+    SettingSlider {
+        theme: page.theme
+        title: "Workspace dots"
+        description: "How many workspace indicators to show in the pill and dashboard."
+        from: 1
+        to: 10
+        stepSize: 1
+        value: page.settings.workspaceCount
+        valueText: Math.round(page.settings.workspaceCount) + " dots"
+        onMoved: (value) => page.settings.workspaceCount = Math.round(value)
+    }
+
     SectionTitle {
         theme: page.theme
         text: "APPEARANCE"
@@ -53,6 +65,23 @@ PageContent {
         value: page.settings.backgroundOpacity
         valueText: Math.round(page.settings.backgroundOpacity * 100) + "%"
         onMoved: (value) => page.settings.backgroundOpacity = value
+    }
+
+    SectionTitle {
+        theme: page.theme
+        text: "BEHAVIOR"
+    }
+
+    SettingSlider {
+        theme: page.theme
+        title: "Status popup duration"
+        description: "How long volume, brightness and workspace changes stay on the pill."
+        from: 500
+        to: 5000
+        stepSize: 100
+        value: page.settings.statusDuration
+        valueText: (Math.round(page.settings.statusDuration / 100) / 10).toFixed(1) + " s"
+        onMoved: (value) => page.settings.statusDuration = Math.round(value)
     }
 
     InfoNote {

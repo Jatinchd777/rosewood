@@ -31,6 +31,35 @@ PageContent {
         onMoved: (value) => page.settings.launcherColumns = Math.round(value)
     }
 
+    SettingSlider {
+        theme: page.theme
+        title: "Icon size"
+        description: "Application icon size in the launcher grid."
+        from: 20
+        to: 48
+        stepSize: 2
+        value: page.settings.launcherIconSize
+        suffix: " px"
+        onMoved: (value) => page.settings.launcherIconSize = Math.round(value)
+    }
+
+    SectionTitle {
+        theme: page.theme
+        text: "RESULTS"
+    }
+
+    SettingSlider {
+        theme: page.theme
+        title: "Search result limit"
+        description: "Maximum matches shown while typing. Browsing without a query still shows every app."
+        from: 5
+        to: 100
+        stepSize: 5
+        value: page.settings.launcherMaxResults
+        valueText: Math.round(page.settings.launcherMaxResults) + " apps"
+        onMoved: (value) => page.settings.launcherMaxResults = Math.round(value)
+    }
+
     SectionTitle {
         theme: page.theme
         text: "TIPS"

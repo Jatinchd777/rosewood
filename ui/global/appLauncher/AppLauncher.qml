@@ -13,6 +13,8 @@ Item {
 
     property int absoluteGridWidth: width - 32
     property int columns: 2
+    property int maxResults: 50
+    property int iconSize: 32
     property var stateEngine
     signal requestClose()
 
@@ -51,7 +53,9 @@ Item {
             return aName < bName ? -1 : (aName > bName ? 1 : 0)
         })
 
-        return apps
+        // Keep the full list while browsing, but cap search matches so a
+        // single letter does not render hundreds of rows.
+        return needle === "" ? apps : apps.slice(0, Math.max(1, launcherRoot.maxResults))
     }
 
     LauncherShortcuts {
@@ -238,7 +242,7 @@ Item {
             visible: !launcherRoot.isCalcMode && !launcherRoot.isCmdMode
 
             cellWidth: Math.floor(launcherRoot.absoluteGridWidth / Math.max(1, launcherRoot.columns))
-            cellHeight: 52
+            cellHeight: Math.max(52, launcherRoot.iconSize + 20)
             keyNavigationWraps: false
             flow: GridView.LeftToRight
 

@@ -59,7 +59,16 @@ FloatingWindow {
 
     function showAndFocus(): void {
         window.visible = true
+        window.resetPages()
         placeTimer.restart()
+    }
+
+    function resetPages(): void {
+        for (let i = 0; i < pagesStack.children.length; i++) {
+            const page = pagesStack.children[i]
+            if (page.scrollToTop)
+                page.scrollToTop()
+        }
     }
 
     Timer {
@@ -280,9 +289,12 @@ FloatingWindow {
             }
 
             StackLayout {
+                id: pagesStack
+
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 currentIndex: window.currentPage
+                onCurrentIndexChanged: window.resetPages()
 
                 DashboardPage {
                     theme: colors

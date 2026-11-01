@@ -19,6 +19,16 @@ Item {
 
     readonly property bool use24h: settings ? settings.clockFormat === "24h" : false
     readonly property bool showSeconds: settings ? settings.showSeconds : true
+    readonly property bool showDate: settings ? settings.showDate : true
+
+    readonly property string datePattern: {
+        const format = settings ? settings.dateFormat : "long"
+        if (format === "short")
+            return "ddd, d MMM"
+        if (format === "iso")
+            return "yyyy-MM-dd"
+        return "dddd, d MMMM"
+    }
 
     opacity: visible ? 1 : 0
 
@@ -38,7 +48,10 @@ Item {
         accent: clockSlide.accent
         location: clockSlide.settings ? clockSlide.settings.weatherLocation : "Chandigarh"
         unit: clockSlide.settings ? clockSlide.settings.weatherUnit : "metric"
+        showWeather: clockSlide.settings ? clockSlide.settings.showWeather : true
+        refreshMinutes: clockSlide.settings ? clockSlide.settings.weatherRefresh : 30
         active: clockSlide.isActive
+        visible: clockSlide.settings ? clockSlide.settings.showWeather : true
 
         anchors.right: parent.right
         anchors.rightMargin: 50
@@ -109,7 +122,8 @@ Item {
         }
 
         Text {
-            text: Qt.formatDateTime(clock.date, "dddd, d MMMM")
+            visible: clockSlide.showDate
+            text: Qt.formatDateTime(clock.date, clockSlide.datePattern)
 
             color: theme.on_surface_variant
             font.family: "JetBrains Mono"
@@ -156,6 +170,7 @@ Item {
 
         Workspace {
             id: dashboardWorkspaces
+            count: clockSlide.settings ? clockSlide.settings.workspaceCount : 10
         }
 
         WifiWidget {

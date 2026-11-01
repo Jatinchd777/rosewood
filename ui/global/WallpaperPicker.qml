@@ -14,6 +14,8 @@ Item {
     readonly property string home: Quickshell.env("HOME") || ""
     readonly property string wallpaperDir: settings ? settings.wallpaperDirectoryResolved : home + "/Pictures/wallpapers"
     readonly property real transitionDuration: settings ? settings.wallpaperTransition : 0.75
+    readonly property string transitionType: settings ? settings.wallpaperTransitionType : "random"
+    readonly property string resizeMode: settings ? settings.wallpaperResize : "crop"
     readonly property string listScript: home + "/.config/quickshell/scripts/ListWallpapers.sh"
     readonly property string applyScript: home + "/.config/quickshell/scripts/ApplyWallpaper.sh"
 
@@ -63,7 +65,12 @@ Item {
             return
 
         const fullPath = root.wallpaperDir + "/" + fileName
-        applyProc.command = ["bash", root.applyScript, fullPath, String(root.transitionDuration)]
+        applyProc.command = [
+            "bash", root.applyScript, fullPath,
+            String(root.transitionDuration),
+            root.transitionType,
+            root.resizeMode
+        ]
         applyProc.running = true
 
         if (root.themeEngine) {

@@ -14,6 +14,14 @@ PageContent {
         text: "TOASTS"
     }
 
+    SettingToggle {
+        theme: page.theme
+        title: "Do not disturb"
+        description: "Keep new notifications in history without showing a toast on the pill."
+        checked: page.settings.doNotDisturb
+        onToggled: (checked) => page.settings.doNotDisturb = checked
+    }
+
     SettingSlider {
         theme: page.theme
         title: "Toast duration"
@@ -39,8 +47,20 @@ PageContent {
         onToggled: (checked) => page.settings.keepExpiredNotifications = checked
     }
 
+    SettingSlider {
+        theme: page.theme
+        title: "History limit"
+        description: "Maximum notifications kept in the dashboard history."
+        from: 10
+        to: 200
+        stepSize: 10
+        value: page.settings.notificationHistoryLimit
+        valueText: Math.round(page.settings.notificationHistoryLimit) + " items"
+        onMoved: (value) => page.settings.notificationHistoryLimit = Math.round(value)
+    }
+
     InfoNote {
         theme: page.theme
-        text: "When this is off, notifications are removed from history as soon as their toast expires."
+        text: "When keep-expired is off, notifications are removed from history as soon as their toast expires."
     }
 }

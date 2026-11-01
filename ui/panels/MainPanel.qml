@@ -184,7 +184,10 @@ PanelWindow {
             anchors.margins: 5
 
             Clock { visible: pill.state === "clock"; settings: root.settings }
-            Workspace { visible: pill.state === "workspace" }
+            Workspace {
+                visible: pill.state === "workspace"
+                count: root.settings ? root.settings.workspaceCount : 10
+            }
             VolumeBar { visible: pill.state === "volume" }
             BrightnessBar { visible: pill.state === "brightness" }
 
@@ -236,6 +239,8 @@ PanelWindow {
                     AppLauncher {
                         stateEngine: root.stateEngine
                         columns: root.settings ? root.settings.launcherColumns : 2
+                        maxResults: root.settings ? root.settings.launcherMaxResults : 50
+                        iconSize: root.settings ? root.settings.launcherIconSize : 32
                         onRequestClose: root.stateEngine.showClock()
                     }
                 }
