@@ -14,7 +14,7 @@
   "bar": {
     "marginTop": 5,
     "exclusiveZone": 26,
-    "backgroundOpacity": 0.65,
+    "backgroundOpacity": 0.7,
     "statusDuration": 500,
     "workspaceCount": 10
   },

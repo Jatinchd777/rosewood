@@ -82,7 +82,7 @@ Item {
     function executeRaw(cmd) {
         if (!cmd)
             return
-        Quickshell.execDetached(["bash", "-c", cmd])
+        Quickshell.execDetached(["zsh", "-c", cmd])
         searchInput.clear()
         launcherRoot.requestClose()
     }

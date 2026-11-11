@@ -4,8 +4,8 @@ import QtQuick.Layouts
 
 Row {
     id: root
-    spacing: 10
-    anchors.horizontalCenterOffset: -6
+    spacing: 7
+    anchors.horizontalCenterOffset: -5
     anchors.centerIn: parent
 
     property color accent: theme.primary
@@ -31,7 +31,7 @@ Row {
         color: root.accent
 
         font.family: "JetBrains Mono Nerd Font"
-        y:0
+        y:-1
         font.pixelSize: 15
         font.weight: Font.Medium
     }

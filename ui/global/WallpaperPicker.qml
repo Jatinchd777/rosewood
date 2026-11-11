@@ -139,7 +139,7 @@ Item {
         cacheBuffer: 1500
         highlightMoveDuration: 250
 
-        cellWidth: width / 4
+        cellWidth: width / 3
         cellHeight: 140
         clip: true
         model: wallpaperModel
@@ -165,8 +165,8 @@ Item {
                     source: "file://" + root.wallpaperDir + "/" + fileName
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
-                    sourceSize.width: 220
-                    sourceSize.height: 125
+                    sourceSize.width: 330
+                    sourceSize.height: 140
                     clip: true
                 }
             }
