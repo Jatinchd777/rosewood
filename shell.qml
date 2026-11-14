@@ -21,4 +21,8 @@ ShellRoot {
         stateEngine: pillState
         settings: settingsStore
     }
+    WallpaperFx {
+        theme: panelWindow.themeEngine
+        settings: settingsStore
+    }
 }

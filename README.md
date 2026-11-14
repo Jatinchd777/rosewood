@@ -67,6 +67,7 @@ Everything in rosewood lives in a single floating **pill** at the top of the scr
 
 ### Theming
 - **Wallust** (Material You palette) regenerates the shell live: change wallpaper → palette rewrite → shell recolours itself in place via the hot-reload engine, no restart.
+- **Two shell-drawn wallpaper transitions** — the change is rendered by a shader (`shaders/wallfx.frag`), not by awww: pixel colonies eating through the old image, or a quiet line that draws a character before the rest of the world spreads out of it. `auto` uses the outline when a prepared map exists, otherwise colonies. awww remains the wallpaper daemon and the automatic fallback.
 - The wallpaper picker (grid + fuzzy search over the configured wallpaper directory, `~/Pictures/wallpapers` by default) applies wallpapers through [awww](https://codeberg.org/LGFae/awww) with a configurable transition type, duration and fill mode, reruns wallust, and pings kitty + cava to retheme.
 - Every widget reads semantic Material tokens (`primary`, `surface_container`, `error`, …), so all screens — bar, dashboard, launcher, lock — change clothes together.
 
@@ -86,8 +87,10 @@ Everything in rosewood lives in a single floating **pill** at the top of the scr
 | --- | --- |
 | [quickshell](https://quickshell.org) (`qs`) | The shell itself |
 | [Hyprland](https://hyprland.org) (`hyprctl`) | Workspaces, app launching, `hyprsunset` night light |
-| [awww](https://codeberg.org/LGFae/awww) | Animated wallpaper transitions |
+| [awww](https://codeberg.org/LGFae/awww) | Wallpaper daemon and fallback transitions |
 | [wallust](https://codeberg.org/explosion-mental/wallust) | Material You palette generation |
+| `python-numpy`, `python-pillow` | Contagion maps for the shader transition |
+| `qt6-shadertools` | Only to rebuild `shaders/*.qsb`; the compiled shader ships in the repo |
 | `brightnessctl` | Brightness slider |
 | `pamixer` | Microphone mute toggle |
 | `wl-clipboard` (`wl-paste` / `wl-copy`) | Clipboard history |
@@ -105,6 +108,22 @@ Optional, if you have them lying around in your Hyprland config:
 
 - `~/.config/hypr/scripts/ScreenShot.sh` — used by the Screenshot toggle (`--area` / `--now`)
 - `~/.config/hypr/scripts/Sounds.sh --volume` — volume feedback sound
+
+The **outline** transition is optional and needs the character cut-out
+environment (rembg with onnxruntime, about 1 GB):
+
+```sh
+scripts/wallfx instalar     # needs uv (sudo pacman -S uv)
+```
+
+Without it, `auto` and `outline` fall back to contagion, and everything else
+works normally. The cut-out is made on demand for a newly selected wallpaper
+(a few seconds on CPU), then cached under `~/.cache/wallfx`.
+
+The segmentation model is chosen from the RAM available at cut-out time:
+`birefnet-general-lite` is the sharpest but peaks near 3 GB, while `silueta`
+and `u2netp` are used on smaller machines. Set `WALLFX_MODEL` to force one
+(for example, `WALLFX_MODEL=birefnet-general-lite`).
 
 ## Installation
 
@@ -132,6 +151,7 @@ A few things you'll likely want to adjust first:
 | Screen recordings directory (`~/Videos`) | `.../SettingsSlide/ScreenRecord/ScreenRecordToggle.qml` |
 | `prime-run` prefix in the theming script (NVIDIA only) | `scripts/WallustAwww.sh` |
 | Palette output: wallust must write `core/Logic/WallustColors.js` | your `~/.config/wallust/wallust.toml` |
+| Rebuilding the shader after editing it | `scripts/build-shaders.sh` (needs `qt6-shadertools`) |
 
 Start it:
 
@@ -168,7 +188,7 @@ The settings app is a separate Quickshell config (`settings/settings.qml`). It w
 | `dashboard` | `clockFormat` (`12h` / `24h`), `showSeconds`, `showDate`, `dateFormat` (`long` / `short` / `iso`), `weatherLocation`, `weatherUnit` (`metric` / `imperial`), `showWeather`, `weatherRefreshMinutes` (`5`–`120`), `defaultDashboardTab` (`0` clock, `1` media, `2` controls, `3` notifications) |
 | `bar` | `marginTop`, `exclusiveZone` (pixels), `backgroundOpacity` (`0.2`–`1`), `statusDuration` (milliseconds, `500`–`5000`), `workspaceCount` (`1`–`10`) |
 | `launcher` | `columns` (`1`–`4`), `maxResults` (`5`–`100`, applied while searching), `iconSize` (`20`–`48` pixels) |
-| `wallpaper` | `directory` (supports `~`), `transitionDuration` (seconds), `transitionType` (`random` / `fade` / `wipe` / `grow` / `wave`), `resizeMode` (`crop` / `fit` / `stretch` / `no`) |
+| `wallpaper` | `directory` (supports `~`), `transitionDuration` (seconds), `effect` (`auto` / `contagion` / `outline` / `classic`), `transitionType` (`random` / `fade` / `wipe` / `grow` / `wave`, classic/fallback only), `resizeMode` (`crop` / `fit` / `stretch` / `no`) |
 | `notifications` | `toastTimeout` (milliseconds), `keepExpired`, `doNotDisturb`, `historyLimit` (`10`–`200`) |
 | `lock` | `monitor` (output name used by `grim`), `useScreenshot` (capture the desktop; off uses the saved wallpaper), `blur` (`0`–`64`), `dim` (`0`–`0.85`) |
 
@@ -194,6 +214,8 @@ The main shell exposes two IPC channels, handy for keybinds:
 qs ipc call pill setState appLauncher   # any state: clock volume brightness workspace
                                         # notifications powermenu wallpaper clipboard appLauncher
 qs ipc call theme reload                # re-read the palette after regenerating it
+qs ipc call wallfx stats                # frame rate of the last wallpaper transition
+qs ipc call wallfx stop                 # cancel one in progress
 
 # Settings app (separate config)
 qs ipc -p ~/.config/quickshell/settings/settings.qml call settings open
@@ -258,7 +280,36 @@ wallpaper ──▶ scripts/ApplyWallpaper.sh ──▶ awww (set wallpaper)
 - `core/Logic/WallustColors.js` is generated — edit your wallust config, not this file.
 - `core/Logic/ThemeColors.js` is a matugen-generated palette kept around as an alternative source; the shell reads the wallust one.
 - The current wallpaper path is remembered between sessions in `~/.cache/wallpaper_state.txt`, so the lock screen and theme engine can draw the same image after a reboot.
-- `scripts/ApplyWallpaper.sh` takes `path [duration] [transitionType] [resizeMode]`, so it can also be called by hand: `scripts/ApplyWallpaper.sh ~/Pictures/wallpapers/foo.png 1.5 fade fit`.
+- `scripts/ApplyWallpaper.sh` takes `path [duration] [transitionType] [resizeMode] [effect]`, so it can also be called by hand: `scripts/ApplyWallpaper.sh ~/Pictures/wallpapers/foo.png 1.5 fade crop auto`.
+
+### Wallpaper transitions
+
+The `effect` setting chooses how the change is drawn:
+
+| Value | What happens |
+| --- | --- |
+| `auto` | Outline if the new wallpaper has a prepared character map, otherwise contagion. |
+| `contagion` | Pixel colonies eat through the old wallpaper in crisp 4 px cells. |
+| `outline` | A quiet line draws the character, it fills in, then the world spreads out. Falls back to contagion if the cut-out is unavailable. |
+| `classic` | No shader; the configured awww transition is used. |
+
+The shader only implements cover/crop. If `resizeMode` is anything other than
+`crop`, the classic path is used to avoid a jump at the hand-off.
+
+`scripts/wallfx` makes the "arrival maps" the shader reads. Contagion maps do
+not depend on the image: a pool of 12 is kept in `~/.cache/wallfx/spread`, and
+each map is renewed after use. Outline maps are made once per wallpaper with
+rembg (model chosen by available RAM) and cached by path, size and date in
+`~/.cache/wallfx/perfil`.
+The picker tops up the contagion pool in the background; outline maps are made
+on demand when a new wallpaper is selected.
+
+`WallpaperFx.qml` lives on the Bottom layer between awww and the windows. It
+fades in over awww, switches awww underneath with no transition, plays the
+shader and fades out. If the images or maps do not load within 2.5 s, or awww
+does not answer, it falls back to a plain awww fade. The first transition after
+the shell starts builds the shader program and can hitch for a moment; later
+ones run at the compositor's frame rate (`qs ipc call wallfx stats`).
 
 ## Structure
 
@@ -266,6 +317,9 @@ wallpaper ──▶ scripts/ApplyWallpaper.sh ──▶ awww (set wallpaper)
 rosewood/
 ├── shell.qml                    # entry point — pill state, audio, main panel
 ├── settings.json                # shared live config (created on first run)
+├── shaders/
+│   ├── wallfx.frag              # source of the wallpaper transitions
+│   └── wallfx.v1.frag.qsb       # compiled shader loaded at runtime
 ├── core/
 │   ├── Logic/                   # theme engine, palette hot-reload, settings store
 │   ├── Managers/                # audio · brightness · workspace · power · IPC
@@ -276,11 +330,11 @@ rosewood/
 ├── ui/
 │   ├── panels/                  # MainPanel (the pill) · HoverDashboard
 │   ├── global/                  # clock · bars · power menu · notifications
-│   │                            # wallpaper picker · clipboard · app launcher
+│   │                            # wallpaper picker · WallpaperFx · clipboard · app launcher
 │   └── HoverDashboard/          # dashboard tabs and widgets
 ├── lockscreen/                  # PAM session lock + preview window
 │   └── core/Logic -> ../../core/Logic  # shared settings store
-└── scripts/                     # wallpaper, theming, recording helpers
+└── scripts/                     # wallpaper, theming, recording, wallfx, shader build helpers
 ```
 
 ## Troubleshooting
@@ -296,6 +350,8 @@ rosewood/
 | No notification toasts | Another daemon (dunst, mako, …) owns the notification bus — stop it. |
 | Weather stuck at `--°C` | `curl` can't reach wttr.in, or the location string needs changing. |
 | Record toggle does nothing | `gpu-screen-recorder` isn't installed. |
+| Wallpaper changes but no shader effect | Check `qs ipc call wallfx state`; rebuild with `scripts/build-shaders.sh` if the `.qsb` is stale, and check the shell log for shader errors. |
+| Outline never appears | The optional cut-out environment is missing. Run `scripts/wallfx instalar`, or leave `effect` on `auto` to use contagion. |
 
 ## Roadmap
 
@@ -309,10 +365,20 @@ rosewood/
 
 - [Quickshell](https://quickshell.org) — the framework that makes all of this possible
 - [Nerd Fonts](https://www.nerdfonts.com) for the icon glyphs, [wttr.in](https://wttr.in) for weather
+- [pocket-dots](https://github.com/diegoMalagrida/pocket-dots) by Diego Malagrida — GPL-3.0. `shaders/wallfx.frag`, `ui/global/WallpaperFx.qml` and `scripts/wallfx` are ported from it and remain GPL-3.0.
 - Inspired by every rice that came before — go make something warm.
+
+## Licence
+
+The original rosewood code and configuration are MIT © [Jatin](https://github.com/Jatinchd777).
+
+The files ported from pocket-dots keep their **GPL-3.0** licence (see the
+headers in those files and the Credits above). Because they are combined with
+the rest of rosewood, any distributed build that includes them must comply
+with GPL-3.0. Personal use is unaffected.
 
 <div align="center">
 
-MIT © [Jatin](https://github.com/Jatinchd777)
+MIT (original code) · GPL-3.0 (pocket-dots ports) © Jatin
 
 </div>

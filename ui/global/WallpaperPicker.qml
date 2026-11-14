@@ -15,9 +15,11 @@ Item {
     readonly property string wallpaperDir: settings ? settings.wallpaperDirectoryResolved : home + "/Pictures/wallpapers"
     readonly property real transitionDuration: settings ? settings.wallpaperTransition : 0.75
     readonly property string transitionType: settings ? settings.wallpaperTransitionType : "random"
+    readonly property string transitionEffect: settings ? settings.wallpaperEffect : "auto"
     readonly property string resizeMode: settings ? settings.wallpaperResize : "crop"
     readonly property string listScript: home + "/.config/quickshell/scripts/ListWallpapers.sh"
     readonly property string applyScript: home + "/.config/quickshell/scripts/ApplyWallpaper.sh"
+    readonly property string wallfxScript: home + "/.config/quickshell/scripts/wallfx"
 
     property var allFiles: []
 
@@ -41,6 +43,13 @@ Item {
     // Qt.createQmlObject() on every click and never destroyed it.
     Process {
         id: applyProc
+    }
+
+    // The contagion maps are image-independent, so fill the pool while the
+    // picker is open instead of making the first click pay for it.
+    Process {
+        id: poolProc
+        command: ["nice", "-n", "15", root.wallfxScript, "pool"]
     }
 
     WallpaperShortcuts {
@@ -69,7 +78,8 @@ Item {
             "bash", root.applyScript, fullPath,
             String(root.transitionDuration),
             root.transitionType,
-            root.resizeMode
+            root.resizeMode,
+            root.transitionEffect
         ]
         applyProc.running = true
 
@@ -84,7 +94,10 @@ Item {
             root.stateEngine.showClock()
     }
 
-    Component.onCompleted: fetchWallpapers.running = true
+    Component.onCompleted: {
+        fetchWallpapers.running = true
+        poolProc.running = true
+    }
     onWallpaperDirChanged: fetchWallpapers.running = true
 
     ListModel { id: wallpaperModel }

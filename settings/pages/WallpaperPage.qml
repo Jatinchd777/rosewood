@@ -45,10 +45,26 @@ PageContent {
         text: "TRANSITION"
     }
 
+    SettingChoice {
+        theme: page.theme
+        title: "Effect"
+        description: "Auto draws the outline when the wallpaper has a prepared character, otherwise the pixel colonies. Classic keeps awww."
+        options: ["Auto", "Contagion", "Outline", "Classic"]
+        values: ["auto", "contagion", "outline", "classic"]
+        currentValue: page.settings.wallpaperEffect
+        onSelected: (value) => page.settings.wallpaperEffect = value
+    }
+
+    InfoNote {
+        theme: page.theme
+        icon: "󰐊"
+        text: "Outline needs the optional cut-out environment (scripts/wallfx instalar). Without it, Auto and Outline fall back to Contagion."
+    }
+
     SettingSlider {
         theme: page.theme
         title: "Duration"
-        description: "How long awww takes to fade to the new wallpaper."
+        description: "Length of the shader transition, and of the awww fallback."
         from: 0
         to: 2
         stepSize: 0.05
@@ -60,8 +76,8 @@ PageContent {
 
     SettingChoice {
         theme: page.theme
-        title: "Transition"
-        description: "Animation awww uses when switching wallpapers."
+        title: "Classic transition"
+        description: "Animation awww uses when Effect is Classic, the shader is unavailable, or the fill mode is not Crop."
         options: ["Random", "Fade", "Wipe", "Grow", "Wave"]
         values: ["random", "fade", "wipe", "grow", "wave"]
         currentValue: page.settings.wallpaperTransitionType
@@ -76,7 +92,7 @@ PageContent {
     SettingChoice {
         theme: page.theme
         title: "Fill mode"
-        description: "How awww scales the image to fit your screen."
+        description: "How awww scales the image. The shader transition supports Crop only; other modes use the classic transition."
         options: ["Crop", "Fit", "Stretch", "Center"]
         values: ["crop", "fit", "stretch", "no"]
         currentValue: page.settings.wallpaperResize

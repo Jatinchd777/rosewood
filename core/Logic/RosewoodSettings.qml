@@ -42,6 +42,7 @@ Item {
     property real wallpaperTransition: 0.75
     property string wallpaperTransitionType: "random"
     property string wallpaperResize: "crop"
+    property string wallpaperEffect: "auto"
 
     // Notifications
     property int notificationTimeout: 3000
@@ -150,6 +151,7 @@ Item {
         root.wallpaperTransition = root.numberOr(wallpaper.transitionDuration, 0.75, 0, 2)
         root.wallpaperTransitionType = root.enumOr(wallpaper.transitionType, ["random", "fade", "wipe", "grow", "wave"], "random")
         root.wallpaperResize = root.enumOr(wallpaper.resizeMode, ["crop", "fit", "stretch", "no"], "crop")
+        root.wallpaperEffect = root.enumOr(wallpaper.effect, ["auto", "contagion", "outline", "classic"], "auto")
 
         root.notificationTimeout = Math.round(root.numberOr(notifications.toastTimeout, 3000, 1000, 30000))
         root.keepExpiredNotifications = root.boolOr(notifications.keepExpired, true)
@@ -196,7 +198,8 @@ Item {
                 "directory": root.wallpaperDirectory,
                 "transitionDuration": root.wallpaperTransition,
                 "transitionType": root.wallpaperTransitionType,
-                "resizeMode": root.wallpaperResize
+                "resizeMode": root.wallpaperResize,
+                "effect": root.wallpaperEffect
             },
             "notifications": {
                 "toastTimeout": root.notificationTimeout,
@@ -252,6 +255,7 @@ Item {
         root.wallpaperTransition = 0.75
         root.wallpaperTransitionType = "random"
         root.wallpaperResize = "crop"
+        root.wallpaperEffect = "auto"
         root.notificationTimeout = 3000
         root.keepExpiredNotifications = true
         root.doNotDisturb = false
@@ -286,6 +290,7 @@ Item {
     onWallpaperTransitionChanged: root.scheduleSave()
     onWallpaperTransitionTypeChanged: root.scheduleSave()
     onWallpaperResizeChanged: root.scheduleSave()
+    onWallpaperEffectChanged: root.scheduleSave()
     onNotificationTimeoutChanged: root.scheduleSave()
     onKeepExpiredNotificationsChanged: root.scheduleSave()
     onDoNotDisturbChanged: root.scheduleSave()

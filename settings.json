@@ -27,7 +27,8 @@
     "directory": "~/Pictures/wallpapers",
     "transitionDuration": 1.5,
     "transitionType": "random",
-    "resizeMode": "crop"
+    "resizeMode": "crop",
+    "effect": "outline"
   },
   "notifications": {
     "toastTimeout": 3000,

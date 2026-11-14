@@ -25,6 +25,9 @@ PanelWindow {
         id: theme
     }
 
+    // Shared with WallpaperFx so both read the same live palette.
+    property alias themeEngine: theme
+
     NotificationManager {
         id: notificationMgr
         stateEngine: root.stateEngine
